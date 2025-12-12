@@ -94,7 +94,6 @@ h2,h3{ margin:0; }
   </div>
 </div>
 
-<!-- Modal for New Chat -->
 <div class="modal" id="newChatModal">
   <div class="modal-content">
     <h3>Select Users</h3>
@@ -150,18 +149,16 @@ let unsubscribeMsg = null;
 
 // ===== Helpers =====
 function normalizeUsername(u){ return u.trim().toLowerCase().replace(/\s+/g,'_'); }
+
 function formatTime(d){
   const year = d.getFullYear();
   const month = (d.getMonth() + 1).toString().padStart(2, '0');
   const day = d.getDate().toString().padStart(2, '0');
-
   const h = d.getHours().toString().padStart(2,'0');
   const m = d.getMinutes().toString().padStart(2,'0');
   const s = d.getSeconds().toString().padStart(2,'0');
-
   return `${year}-${month}-${day} ${h}:${m}:${s}`;
 }
-
 
 // ===== Auth =====
 signupBtn.addEventListener("click", async ()=>{
@@ -206,7 +203,10 @@ function addMessageToDOM(msgData){
   const div = document.createElement("div");
   div.classList.add("message");
   div.classList.add(msgData.senderId===currentUser.uid?"mine":"their");
-  div.innerHTML=`<div class="meta">${msgData.username} - ${msgData.time}</div>${msgData.text}`;
+
+  const ts = msgData.time?.toDate?.() || new Date();
+
+  div.innerHTML=`<div class="meta">${msgData.username} - ${formatTime(ts)}</div>${msgData.text}`;
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -214,10 +214,14 @@ function addMessageToDOM(msgData){
 sendBtn.addEventListener("click", async ()=>{
   const text = messageInput.value.trim();
   if(!text) return;
-  const now = formatTime(new Date());
+
   await db.collection("chats").doc(currentChatId).collection("messages").add({
-    text, username:currentUser.displayName||usernameInput.value, senderId:currentUser.uid, time:now
+    text,
+    username: currentUser.displayName || usernameInput.value,
+    senderId: currentUser.uid,
+    time: firebase.firestore.FieldValue.serverTimestamp()
   });
+
   messageInput.value="";
 });
 
@@ -234,7 +238,6 @@ function listenChats(){
   db.collection("chats").onSnapshot(snapshot=>{
     chatListEl.innerHTML = "";
 
-    // Global Chat
     const globalLi = document.createElement("li");
     globalLi.dataset.id = "global";
     globalLi.textContent = "🌍 Global Chat";
@@ -267,12 +270,14 @@ function switchChat(chatId){
 // ===== Messages Listener =====
 function listenMessages(chatId){
   if(unsubscribeMsg) unsubscribeMsg();
-  unsubscribeMsg = db.collection("chats").doc(chatId).collection("messages").orderBy("time").onSnapshot(snapshot=>{
-    messagesEl.innerHTML="";
-    snapshot.docs.forEach(doc=>{
-      addMessageToDOM(doc.data());
+  unsubscribeMsg = db.collection("chats").doc(chatId).collection("messages")
+    .orderBy("time")
+    .onSnapshot(snapshot=>{
+      messagesEl.innerHTML="";
+      snapshot.docs.forEach(doc=>{
+        addMessageToDOM(doc.data());
+      });
     });
-  });
 }
 
 // ===== New Chat Modal =====
@@ -301,7 +306,7 @@ createChatBtn.addEventListener("click", async ()=>{
   const selected = [...document.querySelectorAll(".user-item.selected")].map(el=>el.dataset.id);
   if(selected.length===0){ alert("Select at least one user"); return; }
   const chatName = prompt("Enter chat name:") || "Group Chat";
-  selected.push(currentUser.uid); // include self
+  selected.push(currentUser.uid);
   await db.collection("chats").add({name:chatName,members:selected});
   newChatModal.style.display="none";
 });
