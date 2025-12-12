@@ -299,6 +299,13 @@ loginBtn.addEventListener('click', async ()=>{
    Initialize chat (after login)
    ========================= */
 async function initChat(){
+  // Ensure global chat doc exists
+  const globalRef = db.collection('chats').doc('global');
+  const g = await globalRef.get();
+  if(!g.exists){
+    await globalRef.set({ name: 'Global', members: [] });
+  }
+
   loginDiv.style.display = 'none';
   chatDiv.style.display = 'flex';
   statusEl.textContent = '';
@@ -316,9 +323,7 @@ async function loadUsers(){
   const snap = await db.collection('users').get();
   allUsers = snap.docs.map(d=>({id:d.id, ...d.data()}));
   // ensure username used consistently
-  allUsers.forEach(u=>{
-    if(!u.username) u.username = 'unknown';
-  });
+  allUsers.forEach(u=>{ if(!u.username) u.username = 'unknown'; });
 }
 
 function renderShortUserList(){
@@ -401,7 +406,7 @@ async function addMessageToDOM(msg){
 
   // text with highlighted mentions
   let text = msg.text || '';
-  text = text.replace(/@(\w+)/g, (m, u)=> `<span class="mention">@${u}</span>`);
+  text = text.replace(/@([^\s@]+)/g, (m, u)=> `<span class="mention">@${u}</span>`);
 
   // attachments (data URLs) - render based on mime/type
   if(msg.type === 'file' && msg.fileData){
@@ -452,7 +457,7 @@ sendBtn.addEventListener('click', async ()=>{
   if(!text) return;
 
   // detect mentions
-  const mentioned = (text.match(/@(\w+)/g) || []).map(s=>s.slice(1));
+  const mentioned = (text.match(/@([^\s@]+)/g) || []).map(s=>s.slice(1));
 
   // include latest username and pfp from users doc
   const userDoc = await db.collection('users').doc(currentUser.uid).get();
@@ -481,6 +486,7 @@ fileInput.addEventListener('change', async ()=>{
 
   if(file.size > ATTACHMENT_SIZE_LIMIT){
     alert(`File too big. Max size ${Math.round(ATTACHMENT_SIZE_LIMIT/1024)} KB to keep Firestore doc size safe.`);
+    fileInput.value = '';
     return;
   }
 
