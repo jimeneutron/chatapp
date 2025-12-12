@@ -150,7 +150,18 @@ let unsubscribeMsg = null;
 
 // ===== Helpers =====
 function normalizeUsername(u){ return u.trim().toLowerCase().replace(/\s+/g,'_'); }
-function formatTime(d){ const h=d.getHours().toString().padStart(2,'0'); const m=d.getMinutes().toString().padStart(2,'0'); const s=d.getSeconds().toString().padStart(2,'0'); return `${h}:${m}:${s}`; }
+function formatTime(d){
+  const year = d.getFullYear();
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
+
+  const h = d.getHours().toString().padStart(2,'0');
+  const m = d.getMinutes().toString().padStart(2,'0');
+  const s = d.getSeconds().toString().padStart(2,'0');
+
+  return `${year}-${month}-${day} ${h}:${m}:${s}`;
+}
+
 
 // ===== Auth =====
 signupBtn.addEventListener("click", async ()=>{
