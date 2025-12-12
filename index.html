@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Chat App</title>
-
+<title>ChatterChat</title>
 <style>
 /* ===== Dark Theme & Layout ===== */
 :root {
@@ -24,7 +23,7 @@ h2,h3{ margin:0; }
 
 .login-container {
   width: 320px; margin: 80px auto; display:flex; flex-direction:column; gap:12px;
-  background: var(--sidebar-bg); padding:20px; border-radius: var(--border-radius);
+  background: var(--sidebar-bg); padding:5px; border-radius: var(--border-radius);
   box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 .login-container input { padding:10px; border-radius:8px; border:none; outline:none; background:#2c2c2c; color: var(--text); }
@@ -33,25 +32,25 @@ h2,h3{ margin:0; }
 #status { color: var(--muted); font-size:0.85rem; min-height:18px; }
 
 .chat-container { display:flex; height:100vh; }
-.sidebar { width:250px; background:var(--sidebar-bg); padding:10px; overflow-y:auto; box-shadow:2px 0 5px rgba(0,0,0,0.5); } /* reduced */
+.sidebar { width:250px; background:var(--sidebar-bg); padding:15px; overflow-y:auto; box-shadow:2px 0 5px rgba(0,0,0,0.5); }
 .sidebar ul { list-style:none; padding:0; margin:10px 0 0 0; }
-.sidebar li { padding:8px; border-radius:var(--border-radius); margin-bottom:6px; cursor:pointer; transition:background 0.2s; } /* reduced */
+.sidebar li { padding:10px; border-radius:var(--border-radius); margin-bottom:6px; cursor:pointer; transition:background 0.2s; }
 .sidebar li:hover { background:#333; }
 .sidebar li.active { background:var(--accent); color:#fff; }
 
-.add-chat-btn { width:100%; padding:8px; border:none; border-radius:8px; background: var(--accent); color:#fff; font-weight:bold; cursor:pointer; margin-bottom:12px; } /* reduced */
+.add-chat-btn { width:100%; padding:10px; border:none; border-radius:8px; background: var(--accent); color:#fff; font-weight:bold; cursor:pointer; margin-bottom:12px; }
 .add-chat-btn:hover { background:#1976d2; }
 
 .chat-main { flex:1; display:flex; flex-direction:column; background: var(--chat-bg); }
-.messages { flex:1; padding:12px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; } /* reduced */
-.message { padding:8px 12px; max-width:65%; border-radius:var(--border-radius); word-wrap:break-word; position:relative; } /* reduced */
+.messages { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+.message { padding:10px 14px; max-width:65%; border-radius:var(--border-radius); word-wrap:break-word; position:relative; }
 .message.mine { background:var(--mine-bg); color:#fff; align-self:flex-end; border-bottom-right-radius:2px; }
 .message.their { background:var(--their-bg); color:#fff; align-self:flex-start; border-bottom-left-radius:2px; }
 .message .meta { font-size:0.75rem; color:var(--muted); margin-bottom:4px; }
 
-.input-container { display:flex; padding:6px 12px; background: var(--sidebar-bg); border-top:1px solid #333; } /* reduced */
-#messageInput { flex:1; padding:7px; border-radius:8px; border:none; background:#2c2c2c; color: var(--text); outline:none; font-size:1rem; } /* reduced */
-#sendBtn { margin-left:10px; padding:8px 14px; border-radius:8px; border:none; background: var(--accent); color:#fff; font-weight:bold; cursor:pointer; transition:background 0.2s; } /* reduced */
+.input-container { display:flex; padding:12px 15px; background: var(--sidebar-bg); border-top:1px solid #333; }
+#messageInput { flex:1; padding:10px; border-radius:8px; border:none; background:#2c2c2c; color: var(--text); outline:none; font-size:1rem; }
+#sendBtn { margin-left:10px; padding:10px 16px; border-radius:8px; border:none; background: var(--accent); color:#fff; font-weight:bold; cursor:pointer; transition:background 0.2s; }
 #sendBtn:hover { background:#1976d2; }
 
 .modal { position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; }
@@ -66,50 +65,91 @@ h2,h3{ margin:0; }
   .chat-container{ flex-direction:column; }
   .sidebar{ width:100%; height:auto; box-shadow:none; }
   .messages{ padding:10px; }
-}</style>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
-  // your firebase config
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-
+}
+</style>
 </head>
 <body>
 
-<div id="topBar">Chat</div>
-
-<div id="chatArea"></div>
-
-<div id="inputBar">
-  <input id="messageInput" placeholder="Message…" />
-  <button id="sendBtn">Send</button>
+<div id="loginDiv" class="login-container">
+  <h2>Login / Signup</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button id="loginBtn">Login</button>
+  <button id="signupBtn">Sign Up</button>
+  <p id="status"></p>
 </div>
 
+<div id="chatDiv" class="chat-container" style="display:none;">
+  <div class="sidebar">
+    <button class="add-chat-btn" id="newChatBtn">+ New Chat</button>
+    <h3>Chats</h3>
+    <ul id="chatList"></ul>
+  </div>
+  <div class="chat-main">
+    <div id="messages" class="messages"></div>
+    <div class="input-container">
+      <input type="text" id="messageInput" placeholder="Type a message...">
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="newChatModal">
+  <div class="modal-content">
+    <h3>Select Users</h3>
+    <input type="text" id="userSearch" placeholder="Search users...">
+    <div id="userList"></div>
+    <button id="createChatBtn" style="margin-top:12px;">Create Chat</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-let currentUser = null;
+// ===== Firebase Config =====
+const firebaseConfig = {
+  apiKey: "AIzaSyAU1SHuBd24zNgP11D6aOPV3w0YFxz8bso",
+  authDomain: "cchhatteerr.firebaseapp.com",
+  projectId: "cchhatteerr",
+  storageBucket: "cchhatteerr.firebasestorage.app",
+  messagingSenderId: "462333840338",
+  appId: "1:462333840338:web:81b2a196992783a7ea160b",
+  measurementId: "G-H9M070PFZB"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ===== DOM =====
+const loginDiv = document.getElementById("loginDiv");
+const chatDiv = document.getElementById("chatDiv");
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+const loginBtn = document.getElementById("loginBtn");
+const signupBtn = document.getElementById("signupBtn");
+const statusEl = document.getElementById("status");
+const messagesEl = document.getElementById("messages");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+const chatListEl = document.getElementById("chatList");
+const newChatBtn = document.getElementById("newChatBtn");
+const newChatModal = document.getElementById("newChatModal");
+const userListEl = document.getElementById("userList");
+const userSearch = document.getElementById("userSearch");
+const createChatBtn = document.getElementById("createChatBtn");
+
+let currentUser;
 let currentChatId = "global";
+let allUsers = [];
+let unsubscribeMsg = null;
 
-// Sign in anonymously
-firebase.auth().signInAnonymously().then(u => {
-  currentUser = u.user;
-});
+// ===== Helpers =====
+function normalizeUsername(u){ return u.trim().toLowerCase().replace(/\s+/g,'_'); }
 
-// Format timestamp with date + time
 function formatTime(d){
   const year = d.getFullYear();
   const month = (d.getMonth() + 1).toString().padStart(2, '0');
@@ -120,49 +160,155 @@ function formatTime(d){
   return `${year}-${month}-${day} ${h}:${m}:${s}`;
 }
 
-// Add message to DOM
-function addMessageToDOM(msgData) {
-  const msgDiv = document.createElement("div");
-  msgDiv.className = "msg";
+// ===== Auth =====
+signupBtn.addEventListener("click", async ()=>{
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
+  if(!username||!password){ statusEl.textContent="Enter username & password"; return; }
+  const uname = normalizeUsername(username);
+  const email = `${uname}@chat.local`;
 
-  msgDiv.innerHTML = `
-    <div>${msgData.text}</div>
-    <div class="meta">
-      ${msgData.username || "anon"} –
-      ${formatTime(msgData.time?.toDate?.() || new Date())}
-    </div>
-  `;
+  try{
+    const userCred = await auth.createUserWithEmailAndPassword(email,password);
+    currentUser = userCred.user;
+    await db.collection("users").doc(currentUser.uid).set({username:username});
+    initChat();
+  } catch(err){ statusEl.textContent=err.message; }
+});
 
-  document.getElementById("chatArea").appendChild(msgDiv);
-  document.getElementById("chatArea").scrollTop =
-    document.getElementById("chatArea").scrollHeight;
+loginBtn.addEventListener("click", async ()=>{
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
+  if(!username||!password){ statusEl.textContent="Enter username & password"; return; }
+  const uname = normalizeUsername(username);
+  const email = `${uname}@chat.local`;
+
+  try{
+    const userCred = await auth.signInWithEmailAndPassword(email,password);
+    currentUser = userCred.user;
+    initChat();
+  } catch(err){ statusEl.textContent="Invalid credentials"; }
+});
+
+// ===== Chat =====
+function initChat(){
+  loginDiv.style.display="none";
+  chatDiv.style.display="flex";
+  loadUsers();
+  listenChats();
+  listenMessages(currentChatId);
 }
 
-// Real-time listener
-db.collection("chats").doc(currentChatId)
-  .collection("messages")
-  .orderBy("time")
-  .onSnapshot(snap => {
-    document.getElementById("chatArea").innerHTML = "";
-    snap.forEach(doc => addMessageToDOM(doc.data()));
+function addMessageToDOM(msgData){
+  const div = document.createElement("div");
+  div.classList.add("message");
+  div.classList.add(msgData.senderId===currentUser.uid?"mine":"their");
+
+  const ts = msgData.time?.toDate?.() || new Date();
+
+  div.innerHTML=`<div class="meta">${msgData.username} - ${formatTime(ts)}</div>${msgData.text}`;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+sendBtn.addEventListener("click", async ()=>{
+  const text = messageInput.value.trim();
+  if(!text) return;
+
+  await db.collection("chats").doc(currentChatId).collection("messages").add({
+    text,
+    username: currentUser.displayName || usernameInput.value,
+    senderId: currentUser.uid,
+    time: firebase.firestore.FieldValue.serverTimestamp()
   });
 
-// Send message
-document.getElementById("sendBtn").addEventListener("click", async () => {
-  const text = document.getElementById("messageInput").value.trim();
-  if (!text || !currentUser) return;
+  messageInput.value="";
+});
 
-  await db.collection("chats")
-    .doc(currentChatId)
-    .collection("messages")
-    .add({
-      text,
-      username: "anon",
-      senderId: currentUser.uid,
-      time: firebase.firestore.FieldValue.serverTimestamp()
+messageInput.addEventListener("keypress", e=>{ if(e.key==="Enter") sendBtn.click(); });
+
+// ===== Load Users =====
+async function loadUsers(){
+  const snapshot = await db.collection("users").get();
+  allUsers = snapshot.docs.map(doc=>({id:doc.id, username:doc.data().username}));
+}
+
+// ===== Chat List =====
+function listenChats(){
+  db.collection("chats").onSnapshot(snapshot=>{
+    chatListEl.innerHTML = "";
+
+    const globalLi = document.createElement("li");
+    globalLi.dataset.id = "global";
+    globalLi.textContent = "🌍 Global Chat";
+    if(currentChatId==="global") globalLi.classList.add("active");
+    globalLi.addEventListener("click", ()=> switchChat("global"));
+    chatListEl.appendChild(globalLi);
+
+    snapshot.docs.forEach(doc=>{
+      const data = doc.data();
+      if(data.members.includes(currentUser.uid)){
+        const li = document.createElement("li");
+        li.textContent = data.name;
+        li.dataset.id = doc.id;
+        if(doc.id === currentChatId) li.classList.add("active");
+        li.addEventListener("click", ()=> switchChat(doc.id));
+        chatListEl.appendChild(li);
+      }
     });
+  });
+}
 
-  document.getElementById("messageInput").value = "";
+function switchChat(chatId){
+  currentChatId = chatId;
+  messagesEl.innerHTML="";
+  document.querySelectorAll("#chatList li").forEach(li=>li.classList.remove("active"));
+  document.querySelector(`#chatList li[data-id="${chatId}"]`).classList.add("active");
+  listenMessages(chatId);
+}
+
+// ===== Messages Listener =====
+function listenMessages(chatId){
+  if(unsubscribeMsg) unsubscribeMsg();
+  unsubscribeMsg = db.collection("chats").doc(chatId).collection("messages")
+    .orderBy("time")
+    .onSnapshot(snapshot=>{
+      messagesEl.innerHTML="";
+      snapshot.docs.forEach(doc=>{
+        addMessageToDOM(doc.data());
+      });
+    });
+}
+
+// ===== New Chat Modal =====
+newChatBtn.addEventListener("click", ()=>{
+  newChatModal.style.display="flex";
+  renderUserList(allUsers);
+});
+
+userSearch.addEventListener("input", ()=>{ 
+  renderUserList(allUsers.filter(u=>u.username.toLowerCase().includes(userSearch.value.toLowerCase()))); 
+});
+
+function renderUserList(users){
+  userListEl.innerHTML="";
+  users.forEach(u=>{
+    const div = document.createElement("div");
+    div.textContent = u.username;
+    div.classList.add("user-item");
+    div.dataset.id = u.id;
+    div.addEventListener("click", ()=> div.classList.toggle("selected"));
+    userListEl.appendChild(div);
+  });
+}
+
+createChatBtn.addEventListener("click", async ()=>{
+  const selected = [...document.querySelectorAll(".user-item.selected")].map(el=>el.dataset.id);
+  if(selected.length===0){ alert("Select at least one user"); return; }
+  const chatName = prompt("Enter chat name:") || "Group Chat";
+  selected.push(currentUser.uid);
+  await db.collection("chats").add({name:chatName,members:selected});
+  newChatModal.style.display="none";
 });
 </script>
 
