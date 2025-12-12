@@ -23,7 +23,7 @@ h2,h3{ margin:0; }
 
 .login-container {
   width: 320px; margin: 80px auto; display:flex; flex-direction:column; gap:12px;
-  background: var(--sidebar-bg); padding:5px; border-radius: var(--border-radius);
+  background: var(--sidebar-bg); padding:20px; border-radius: var(--border-radius);
   box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 .login-container input { padding:10px; border-radius:8px; border:none; outline:none; background:#2c2c2c; color: var(--text); }
@@ -42,16 +42,19 @@ h2,h3{ margin:0; }
 .add-chat-btn:hover { background:#1976d2; }
 
 .chat-main { flex:1; display:flex; flex-direction:column; background: var(--chat-bg); }
-.messages { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; max-height: calc(100vh - 220px); }
-.message { padding:10px 14px; max-width:65%; border-radius:var(--border-radius); word-wrap:break-word; position:relative; }
-.message.mine { background:var(--mine-bg); color:#fff; align-self:flex-end; border-bottom-right-radius:2px; }
+.messages { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; max-height:calc(100vh - 220px); }
+.message { padding:10px 14px; max-width:65%; border-radius:var(--border-radius); word-wrap:break-word; position:relative; display:flex; gap:8px; align-items:flex-start; }
+.message.mine { background:var(--mine-bg); color:#fff; align-self:flex-end; border-bottom-right-radius:2px; flex-direction:row-reverse; }
 .message.their { background:var(--their-bg); color:#fff; align-self:flex-start; border-bottom-left-radius:2px; }
 .message .meta { font-size:0.75rem; color:var(--muted); margin-bottom:4px; }
+.pfp { width:32px; height:32px; border-radius:50%; }
+.mention { color: var(--accent); font-weight:bold; }
+.chat-img, .chat-video, .chat-audio { margin-top:6px; border-radius:10px; max-width:240px; display:block; }
 
-.input-container { display:flex; padding:12px 15px; background: var(--sidebar-bg); border-top:1px solid #333; }
+.input-container { display:flex; padding:12px 15px; background: var(--sidebar-bg); border-top:1px solid #333; gap:6px; }
 #messageInput { flex:1; padding:10px; border-radius:8px; border:none; background:#2c2c2c; color: var(--text); outline:none; font-size:1rem; }
-#sendBtn { margin-left:10px; padding:10px 16px; border-radius:8px; border:none; background: var(--accent); color:#fff; font-weight:bold; cursor:pointer; transition:background 0.2s; }
-#sendBtn:hover { background:#1976d2; }
+#sendBtn, #attachBtn { padding:10px 16px; border-radius:8px; border:none; background: var(--accent); color:#fff; font-weight:bold; cursor:pointer; transition:background 0.2s; }
+#sendBtn:hover, #attachBtn:hover { background:#1976d2; }
 
 .modal { position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; }
 .modal-content { background: var(--sidebar-bg); padding:20px; border-radius:var(--border-radius); width:300px; max-height:70%; overflow-y:auto; display:flex; flex-direction:column; }
@@ -70,15 +73,18 @@ h2,h3{ margin:0; }
 </head>
 <body>
 
+<!-- ===== LOGIN ===== -->
 <div id="loginDiv" class="login-container">
   <h2>Login / Signup</h2>
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
+  <input type="file" id="pfpInput" accept="image/*" style="background:none; color:var(--text);">
   <button id="loginBtn">Login</button>
   <button id="signupBtn">Sign Up</button>
   <p id="status"></p>
 </div>
 
+<!-- ===== CHAT ===== -->
 <div id="chatDiv" class="chat-container" style="display:none;">
   <div class="sidebar">
     <button class="add-chat-btn" id="newChatBtn">+ New Chat</button>
@@ -89,11 +95,14 @@ h2,h3{ margin:0; }
     <div id="messages" class="messages"></div>
     <div class="input-container">
       <input type="text" id="messageInput" placeholder="Type a message...">
+      <button id="attachBtn">📎</button>
+      <input type="file" id="fileInput" style="display:none">
       <button id="sendBtn">Send</button>
     </div>
   </div>
 </div>
 
+<!-- ===== NEW CHAT MODAL ===== -->
 <div class="modal" id="newChatModal">
   <div class="modal-content">
     <h3>Select Users</h3>
@@ -103,13 +112,14 @@ h2,h3{ margin:0; }
   </div>
 </div>
 
-<!-- Firebase -->
+<!-- ===== FIREBASE ===== -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
 <script>
-// ===== Firebase Config =====
+// ===== FIREBASE CONFIG =====
 const firebaseConfig = {
   apiKey: "AIzaSyAU1SHuBd24zNgP11D6aOPV3w0YFxz8bso",
   authDomain: "cchhatteerr.firebaseapp.com",
@@ -119,10 +129,10 @@ const firebaseConfig = {
   appId: "1:462333840338:web:81b2a196992783a7ea160b",
   measurementId: "G-H9M070PFZB"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 // ===== DOM =====
 const loginDiv = document.getElementById("loginDiv");
@@ -135,6 +145,8 @@ const statusEl = document.getElementById("status");
 const messagesEl = document.getElementById("messages");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
+const attachBtn = document.getElementById("attachBtn");
+const fileInput = document.getElementById("fileInput");
 const chatListEl = document.getElementById("chatList");
 const newChatBtn = document.getElementById("newChatBtn");
 const newChatModal = document.getElementById("newChatModal");
@@ -147,20 +159,19 @@ let currentChatId = "global";
 let allUsers = [];
 let unsubscribeMsg = null;
 
-// ===== Helpers =====
+// ===== HELPERS =====
 function normalizeUsername(u){ return u.trim().toLowerCase().replace(/\s+/g,'_'); }
-
 function formatTime(d){
   const year = d.getFullYear();
-  const month = (d.getMonth() + 1).toString().padStart(2, '0');
-  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth()+1).toString().padStart(2,'0');
+  const day = d.getDate().toString().padStart(2,'0');
   const h = d.getHours().toString().padStart(2,'0');
   const m = d.getMinutes().toString().padStart(2,'0');
   const s = d.getSeconds().toString().padStart(2,'0');
   return `${year}-${month}-${day} ${h}:${m}:${s}`;
 }
 
-// ===== Auth =====
+// ===== AUTH =====
 signupBtn.addEventListener("click", async ()=>{
   const username = usernameInput.value.trim();
   const password = passwordInput.value;
@@ -171,7 +182,17 @@ signupBtn.addEventListener("click", async ()=>{
   try{
     const userCred = await auth.createUserWithEmailAndPassword(email,password);
     currentUser = userCred.user;
-    await db.collection("users").doc(currentUser.uid).set({username:username});
+
+    // Upload PFP
+    let pfpUrl = "";
+    const pfpFile = document.getElementById("pfpInput").files[0];
+    if(pfpFile) pfpUrl = await uploadPfp(pfpFile, currentUser.uid);
+
+    await db.collection("users").doc(currentUser.uid).set({
+      username: username,
+      pfpUrl: pfpUrl
+    });
+
     initChat();
   } catch(err){ statusEl.textContent=err.message; }
 });
@@ -190,15 +211,24 @@ loginBtn.addEventListener("click", async ()=>{
   } catch(err){ statusEl.textContent="Invalid credentials"; }
 });
 
-// ===== Chat =====
+// ===== UPLOAD PFP =====
+async function uploadPfp(file, uid){
+  const ref = storage.ref(`pfps/${uid}.jpg`);
+  await ref.put(file);
+  return await ref.getDownloadURL();
+}
+
+// ===== INIT CHAT =====
 function initChat(){
   loginDiv.style.display="none";
   chatDiv.style.display="flex";
   loadUsers();
   listenChats();
   listenMessages(currentChatId);
+  if(Notification.permission!=="granted") Notification.requestPermission();
 }
 
+// ===== ADD MESSAGE =====
 function addMessageToDOM(msgData){
   const div = document.createElement("div");
   div.classList.add("message");
@@ -206,19 +236,57 @@ function addMessageToDOM(msgData){
 
   const ts = msgData.time?.toDate?.() || new Date();
 
-  div.innerHTML=`<div class="meta">${msgData.username} - ${formatTime(ts)}</div>${msgData.text}`;
+  // Highlight mentions
+  let formattedText = msgData.text || "";
+  formattedText = formattedText.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+
+  // Attachments
+  if(msgData.type==="file"){
+    if(msgData.fileUrl.match(/\.(jpg|jpeg|png|gif)$/i)){
+      formattedText += `<img src="${msgData.fileUrl}" class="chat-img">`;
+    } else if(msgData.fileUrl.match(/\.(mp4|webm|ogg)$/i)){
+      formattedText += `<video src="${msgData.fileUrl}" controls class="chat-video"></video>`;
+    } else if(msgData.fileUrl.match(/\.(mp3|wav|ogg)$/i)){
+      formattedText += `<audio src="${msgData.fileUrl}" controls class="chat-audio"></audio>`;
+    } else {
+      formattedText += `<a href="${msgData.fileUrl}" target="_blank">📎 ${msgData.fileName}</a>`;
+    }
+  }
+
+  div.innerHTML = `
+    <img src="${msgData.pfpUrl||'https://placehold.co/40'}" class="pfp">
+    <div>
+      <div class="meta">${msgData.username} - ${formatTime(ts)}</div>
+      ${formattedText}
+    </div>
+  `;
+
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // Notification
+  if(msgData.senderId!==currentUser.uid){
+    if(msgData.mentions?.includes(currentUser.username) || currentChatId!=="global"){
+      new Notification(msgData.username, {body:msgData.text, icon:msgData.pfpUrl});
+    }
+  }
 }
 
+// ===== SEND MESSAGE =====
 sendBtn.addEventListener("click", async ()=>{
   const text = messageInput.value.trim();
   if(!text) return;
 
+  // Detect mentions
+  const mentionedUsers = text.match(/@(\w+)/g)?.map(u=>u.substring(1));
+
   await db.collection("chats").doc(currentChatId).collection("messages").add({
     text,
-    username: currentUser.displayName || usernameInput.value,
+    mentions: mentionedUsers||[],
+    type: "text",
     senderId: currentUser.uid,
+    username: currentUser.displayName || usernameInput.value,
+    pfpUrl: (await db.collection("users").doc(currentUser.uid).get()).data()?.pfpUrl||"",
     time: firebase.firestore.FieldValue.serverTimestamp()
   });
 
@@ -227,20 +295,39 @@ sendBtn.addEventListener("click", async ()=>{
 
 messageInput.addEventListener("keypress", e=>{ if(e.key==="Enter") sendBtn.click(); });
 
-// ===== Load Users =====
+// ===== ATTACHMENTS =====
+attachBtn.addEventListener("click", ()=> fileInput.click());
+fileInput.addEventListener("change", async ()=>{
+  const file = fileInput.files[0];
+  if(!file) return;
+
+  const ref = storage.ref(`attachments/${currentChatId}/${Date.now()}_${file.name}`);
+  await ref.put(file);
+  const url = await ref.getDownloadURL();
+
+  await db.collection("chats").doc(currentChatId).collection("messages").add({
+    type: "file",
+    fileUrl: url,
+    fileName: file.name,
+    senderId: currentUser.uid,
+    username: currentUser.displayName || usernameInput.value,
+    pfpUrl: (await db.collection("users").doc(currentUser.uid).get()).data()?.pfpUrl||"",
+    time: firebase.firestore.FieldValue.serverTimestamp()
+  });
+});
+
+// ===== LOAD USERS =====
 async function loadUsers(){
   const snapshot = await db.collection("users").get();
   allUsers = snapshot.docs.map(doc=>({id:doc.id, username:doc.data().username}));
 }
 
-// ===== Chat List =====
+// ===== CHAT LIST =====
 function listenChats(){
   db.collection("chats").onSnapshot(snapshot=>{
     chatListEl.innerHTML = "";
-
     const globalLi = document.createElement("li");
-    globalLi.dataset.id = "global";
-    globalLi.textContent = "🌍 Global Chat";
+    globalLi.dataset.id="global"; globalLi.textContent="🌍 Global Chat";
     if(currentChatId==="global") globalLi.classList.add("active");
     globalLi.addEventListener("click", ()=> switchChat("global"));
     chatListEl.appendChild(globalLi);
@@ -251,7 +338,7 @@ function listenChats(){
         const li = document.createElement("li");
         li.textContent = data.name;
         li.dataset.id = doc.id;
-        if(doc.id === currentChatId) li.classList.add("active");
+        if(doc.id===currentChatId) li.classList.add("active");
         li.addEventListener("click", ()=> switchChat(doc.id));
         chatListEl.appendChild(li);
       }
@@ -263,33 +350,26 @@ function switchChat(chatId){
   currentChatId = chatId;
   messagesEl.innerHTML="";
   document.querySelectorAll("#chatList li").forEach(li=>li.classList.remove("active"));
-  document.querySelector(`#chatList li[data-id="${chatId}"]`).classList.add("active");
+  document.querySelector(`#chatList li[data-id="${chatId}"]`)?.classList.add("active");
   listenMessages(chatId);
 }
 
-// ===== Messages Listener =====
 function listenMessages(chatId){
   if(unsubscribeMsg) unsubscribeMsg();
   unsubscribeMsg = db.collection("chats").doc(chatId).collection("messages")
     .orderBy("time")
     .onSnapshot(snapshot=>{
       messagesEl.innerHTML="";
-      snapshot.docs.forEach(doc=>{
-        addMessageToDOM(doc.data());
-      });
+      snapshot.docs.forEach(doc=> addMessageToDOM(doc.data()));
     });
 }
 
-// ===== New Chat Modal =====
+// ===== NEW CHAT MODAL =====
 newChatBtn.addEventListener("click", ()=>{
   newChatModal.style.display="flex";
   renderUserList(allUsers);
 });
-
-userSearch.addEventListener("input", ()=>{ 
-  renderUserList(allUsers.filter(u=>u.username.toLowerCase().includes(userSearch.value.toLowerCase()))); 
-});
-
+userSearch.addEventListener("input", ()=> renderUserList(allUsers.filter(u=>u.username.toLowerCase().includes(userSearch.value.toLowerCase()))));
 function renderUserList(users){
   userListEl.innerHTML="";
   users.forEach(u=>{
@@ -301,7 +381,6 @@ function renderUserList(users){
     userListEl.appendChild(div);
   });
 }
-
 createChatBtn.addEventListener("click", async ()=>{
   const selected = [...document.querySelectorAll(".user-item.selected")].map(el=>el.dataset.id);
   if(selected.length===0){ alert("Select at least one user"); return; }
@@ -311,6 +390,5 @@ createChatBtn.addEventListener("click", async ()=>{
   newChatModal.style.display="none";
 });
 </script>
-
 </body>
 </html>
