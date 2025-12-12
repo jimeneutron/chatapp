@@ -42,7 +42,7 @@ h2,h3{ margin:0; }
 .add-chat-btn:hover { background:#1976d2; }
 
 .chat-main { flex:1; display:flex; flex-direction:column; background: var(--chat-bg); }
-.messages { flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+.messages { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; max-height: calc(100vh - 220px); }
 .message { padding:10px 14px; max-width:65%; border-radius:var(--border-radius); word-wrap:break-word; position:relative; }
 .message.mine { background:var(--mine-bg); color:#fff; align-self:flex-end; border-bottom-right-radius:2px; }
 .message.their { background:var(--their-bg); color:#fff; align-self:flex-start; border-bottom-left-radius:2px; }
