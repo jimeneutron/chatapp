@@ -215,7 +215,7 @@ let currentUser = null;
 let currentChatId = 'global';
 let allUsers = [];
 let unsubscribeMsg = null;
-const ATTACHMENT_SIZE_LIMIT = 800 * 1024; // 800 KB - conservative to fit Firestore docs
+const ATTACHMENT_SIZE_LIMIT = 2048 * 2048; // 800 KB - conservative to fit Firestore docs
 
 /* =========================
    Helpers
