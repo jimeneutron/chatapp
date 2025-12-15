@@ -1,637 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="MyApp">
 <meta charset="utf-8" />
-<title>LibertyChat </title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ChatterChat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ChatterChat">
+
 <style>
-/* ===== Dark Theme & Layout ===== */
-:root{
-  --bg:#121212; --sidebar-bg:#1f1f1f; --chat-bg:#181818; --text:#e0e0e0;
-  --muted:#888; --mine-bg:#4caf50; --their-bg:#2c2c2c; --accent:#2196f3;
-  --border-radius:12px; --font-family:'Segoe UI',Tahoma, Geneva, Verdana, sans-serif;
+/* =======================
+   GLOBAL LOCKS
+   ======================= */
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #121212;
+  color: #e0e0e0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
-*{box-sizing:border-box}
-body{margin:0;font-family:var(--font-family);background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
-h2,h3{margin:0}
-.login-container{width:320px;margin:48px auto;display:flex;flex-direction:column;gap:10px;background:var(--sidebar-bg);padding:18px;border-radius:12px;box-shadow:0 0 18px rgba(0,0,0,0.5)}
-.login-container input{padding:10px;border-radius:8px;border:none;outline:none;background:#2c2c2c;color:var(--text)}
-.login-container button{padding:10px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-weight:600}
-#status{color:var(--muted);font-size:0.85rem;min-height:18px}
 
-/* layout */
-.chat-container{display:flex;height:100vh}
-.sidebar{width:260px;background:var(--sidebar-bg);padding:16px;overflow-y:auto;box-shadow:2px 0 8px rgba(0,0,0,0.5)}
-.sidebar h3{margin-top:6px}
-.add-chat-btn{width:100%;padding:10px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;margin-bottom:12px}
-.add-chat-btn.secondary{background:#555}
-.chat-main{flex:1;display:flex;flex-direction:column;background:var(--chat-bg)}
-.messages{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 220px)}
-.chat-top{padding:10px 18px;border-bottom:1px solid #222;color:var(--muted)}
-.message{max-width:72%;padding:10px 14px;border-radius:12px;word-wrap:break-word;display:flex;gap:10px;align-items:flex-start;position:relative}
-.message.their{background:var(--their-bg);align-self:flex-start}
-.message.mine{background:var(--mine-bg);align-self:flex-end;color:#fff;flex-direction:row-reverse}
-.message .meta{font-size:0.75rem;color:var(--muted);margin-bottom:6px}
-.pfp{width:36px;height:36px;border-radius:50%;object-fit:cover}
-.message .content{display:flex;flex-direction:column}
-.mention{color:var(--accent);font-weight:700}
-.chat-img, .chat-video, .chat-audio{border-radius:10px;max-width:280px;margin-top:6px;display:block}
+/* =======================
+   VARIABLES
+   ======================= */
+:root{
+  --bg:#121212;
+  --sidebar:#1f1f1f;
+  --chat:#181818;
+  --accent:#2196f3;
+  --mine:#4caf50;
+  --their:#2c2c2c;
+  --muted:#888;
+  --radius:12px;
+}
 
-/* input */
-.input-container{display:flex;gap:8px;padding:12px 16px;background:var(--sidebar-bg);border-top:1px solid #222}
-#messageInput{flex:1;padding:10px;border-radius:8px;border:none;background:#2c2c2c;color:var(--text);outline:none;font-size:1rem}
-#sendBtn,#attachBtn{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
-#sendBtn:hover,#attachBtn:hover{background:#1976d2}
+/* =======================
+   LOGIN
+   ======================= */
+.login-container{
+  width:320px;
+  margin:60px auto;
+  padding:18px;
+  background:var(--sidebar);
+  border-radius:var(--radius);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.login-container input,
+.login-container button{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+}
+.login-container input{
+  background:#2c2c2c;
+  color:#fff;
+}
+.login-container button{
+  background:var(--accent);
+  color:#fff;
+  font-weight:600;
+}
 
-/* modals */
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:40}
-.modal-content{background:var(--sidebar-bg);padding:18px;border-radius:12px;width:340px;max-height:80%;overflow:auto}
-.user-item{padding:8px;border-radius:8px;margin-bottom:6px;cursor:pointer}
-.user-item:hover{background:#333}
-.user-item.selected{background:var(--accent);color:#fff}
+/* =======================
+   LAYOUT
+   ======================= */
+.chat-container{
+  display:flex;
+  height:100vh;
+}
 
-/* settings layout */
-.settings-row{display:flex;gap:8px;align-items:center;margin-top:8px}
-.settings-row input[type="text"]{flex:1;padding:8px;border-radius:6px;border:none;background:#2c2c2c;color:var(--text)}
-.small-btn{padding:8px 10px;border-radius:8px;border:none;background:#444;color:#fff;cursor:pointer}
+/* ---- SIDEBAR (NO SCROLL EVER) ---- */
+.sidebar{
+  width:260px;
+  background:var(--sidebar);
+  padding:16px;
+  overflow:hidden;
+  touch-action:none;
+  overscroll-behavior:none;
+  box-shadow:2px 0 8px rgba(0,0,0,.5);
+}
+.sidebar button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:#fff;
+  font-weight:700;
+  margin-bottom:10px;
+}
 
-/* responsive */
-@media(max-width:800px){.sidebar{display:none}.chat-container{flex-direction:column}.chat-main{height:100vh}}
+/* ---- CHAT MAIN ---- */
+.chat-main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:var(--chat);
+}
+
+.chat-top{
+  padding:12px 16px;
+  border-bottom:1px solid #222;
+  color:var(--muted);
+}
+
+/* ---- MESSAGES (ONLY SCROLL AREA) ---- */
+.messages{
+  flex:1;
+  padding:16px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.message{
+  max-width:72%;
+  padding:10px 14px;
+  border-radius:12px;
+  display:flex;
+  gap:10px;
+}
+.message.mine{
+  align-self:flex-end;
+  background:var(--mine);
+  color:#fff;
+  flex-direction:row-reverse;
+}
+.message.their{
+  align-self:flex-start;
+  background:var(--their);
+}
+
+.pfp{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+/* ---- INPUT ---- */
+.input-container{
+  display:flex;
+  gap:8px;
+  padding:12px;
+  background:var(--sidebar);
+  border-top:1px solid #222;
+}
+.input-container input{
+  flex:1;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#2c2c2c;
+  color:#fff;
+}
+.input-container button{
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  background:var(--accent);
+  color:#fff;
+  font-weight:700;
+}
+
+/* =======================
+   MOBILE
+   ======================= */
+@media(max-width:800px){
+  .sidebar{display:none}
+}
 </style>
 </head>
+
 <body>
 
 <!-- LOGIN -->
 <div id="loginDiv" class="login-container">
-  <h2>Click the Share button, then "add to home screen" to make this an app.</h2>
-  <input id="username" placeholder="Username" />
-  <input id="password" type="password" placeholder="Password" />
-  <div>
-    <label style="font-size:0.9rem;color:var(--muted)">Profile picture (optional)</label><br>
-    <input id="pfpInput" type="file" accept="image/*" />
-    <div id="pfpPreviewWrap" style="margin-top:8px">
-      <img id="pfpPreview" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;display:none"/>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px">
-    <button id="loginBtn">Login</button>
-    <button id="signupBtn">Sign Up</button>
-  </div>
-  <p id="status"></p>
+  <h2>ChatterChat</h2>
+  <input id="username" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <button id="loginBtn">Login</button>
+  <button id="signupBtn">Sign Up</button>
+  <p id="status" style="color:var(--muted)"></p>
 </div>
 
 <!-- CHAT -->
-<div id="chatDiv" class="chat-container" style="display:none;">
+<div id="chatDiv" class="chat-container" style="display:none">
   <div class="sidebar">
-    <button id="newChatBtn" class="add-chat-btn">+ New Chat</button>
-    <button id="settingsBtn" class="add-chat-btn secondary">⚙️ Settings</button>
-    <h3>Chats</h3>
-    <ul id="chatList"></ul>
-    <hr style="border:0;border-top:1px solid #222;margin:14px 0">
-    <h3>Users</h3>
-    <div id="shortUserList" style="display:flex;flex-direction:column;gap:6px"></div>
+    <button id="newChatBtn">+ New Chat</button>
+    <button id="settingsBtn">⚙ Settings</button>
+    <div id="chatList"></div>
   </div>
 
   <div class="chat-main">
-    <div class="chat-top">
-      <span id="chatTitle">Global Chat</span>
-    </div>
+    <div class="chat-top" id="chatTitle">Global Chat</div>
     <div id="messages" class="messages"></div>
 
     <div class="input-container">
-      <input id="messageInput" placeholder="Type a message... (use @username to mention)" />
-      <button id="attachBtn">📎</button>
-      <input id="fileInput" type="file" style="display:none" />
+      <input id="messageInput" placeholder="Type a message…">
       <button id="sendBtn">Send</button>
     </div>
   </div>
 </div>
 
-<!-- NEW CHAT MODAL -->
-<div id="newChatModal" class="modal">
-  <div class="modal-content">
-    <h3>Create Chat</h3>
-    <input id="chatNameInput" placeholder="Chat name" style="width:100%;padding:8px;border-radius:6px;border:none;background:#2c2c2c;color:var(--text)"/>
-    <p style="color:var(--muted);margin-top:8px">Select participants</p>
-    <div id="userList" style="margin-top:8px"></div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button id="createChatBtn" class="small-btn">Create</button>
-      <button id="cancelCreateChatBtn" class="small-btn">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- SETTINGS MODAL -->
-<div id="settingsModal" class="modal">
-  <div class="modal-content">
-    <h3>User Settings</h3>
-
-    <div class="settings-row">
-      <img id="settingsPfpPreview" src="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;display:block" />
-      <div style="flex:1">
-        <label style="font-size:0.9rem;color:var(--muted)">Username</label>
-        <input id="settingsUsername" type="text" style="width:100%;padding:8px;border-radius:6px;border:none;background:#2c2c2c;color:var(--text)" />
-        <label style="font-size:0.9rem;color:var(--muted);margin-top:8px;display:block">Change profile picture</label>
-        <input id="settingsPfp" type="file" accept="image/*" />
-      </div>
-    </div>
-
-    <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
-      <button id="saveSettingsBtn" class="small-btn">Save</button>
-      <button id="closeSettingsBtn" class="small-btn">Close</button>
-    </div>
-    <div style="margin-top:12px;color:var(--muted);font-size:0.9rem">
-      <div>Your UID: <span id="myUid"></span></div>
-      <div style="margin-top:6px"><button id="logoutBtn" class="small-btn">Log out</button></div>
-    </div>
-  </div>
-</div>
-
-<!-- FIREBASE (compat libs for simplicity) -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-/* =========================
-   Configuration - paste your Firebase config here if different
-   ========================= */
-const firebaseConfig = {
+/* ======================
+   FIREBASE CONFIG
+   ====================== */
+firebase.initializeApp({
   apiKey: "AIzaSyAU1SHuBd24zNgP11D6aOPV3w0YFxz8bso",
   authDomain: "cchhatteerr.firebaseapp.com",
-  projectId: "cchhatteerr",
-  storageBucket: "cchhatteerr.firebasestorage.app",
-  messagingSenderId: "462333840338",
-  appId: "1:462333840338:web:81b2a196992783a7ea160b",
-  measurementId: "G-H9M070PFZB"
-};
-firebase.initializeApp(firebaseConfig);
+  projectId: "cchhatteerr"
+});
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* =========================
-   DOM
-   ========================= */
-const loginDiv = document.getElementById('loginDiv');
-const chatDiv = document.getElementById('chatDiv');
-
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-const pfpInput = document.getElementById('pfpInput');
-const pfpPreview = document.getElementById('pfpPreview');
-const loginBtn = document.getElementById('loginBtn');
-const signupBtn = document.getElementById('signupBtn');
-const statusEl = document.getElementById('status');
-
-const messagesEl = document.getElementById('messages');
-const messageInput = document.getElementById('messageInput');
-const sendBtn = document.getElementById('sendBtn');
-const attachBtn = document.getElementById('attachBtn');
-const fileInput = document.getElementById('fileInput');
-
-const chatListEl = document.getElementById('chatList');
-const newChatBtn = document.getElementById('newChatBtn');
-const newChatModal = document.getElementById('newChatModal');
-const userListEl = document.getElementById('userList');
-const chatNameInput = document.getElementById('chatNameInput');
-const createChatBtn = document.getElementById('createChatBtn');
-const cancelCreateChatBtn = document.getElementById('cancelCreateChatBtn');
-
-const settingsBtn = document.getElementById('settingsBtn');
-const settingsModal = document.getElementById('settingsModal');
-const settingsUsername = document.getElementById('settingsUsername');
-const settingsPfp = document.getElementById('settingsPfp');
-const settingsPfpPreview = document.getElementById('settingsPfpPreview');
-const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-const myUidEl = document.getElementById('myUid');
-
-const shortUserList = document.getElementById('shortUserList');
-
-/* =========================
-   App state
-   ========================= */
-let currentUser = null;
-let currentChatId = 'global';
-let allUsers = [];
-let unsubscribeMsg = null;
-const ATTACHMENT_SIZE_LIMIT = 2048 * 2048; // 800 KB - conservative to fit Firestore docs
-
-/* =========================
-   Helpers
-   ========================= */
-function normalizeUsername(u){ return u.trim().toLowerCase().replace(/\s+/g,'_'); }
-function formatTime(d){
-  if(!d) return '';
-  const dt = (d.toDate)? d.toDate() : d;
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,'0');
-  const day = String(dt.getDate()).padStart(2,'0');
-  const hh = String(dt.getHours()).padStart(2,'0');
-  const mm = String(dt.getMinutes()).padStart(2,'0');
-  return `${y}-${m}-${day} ${hh}:${mm}`;
-}
-function showModal(modal){ modal.style.display='flex' }
-function hideModal(modal){ modal.style.display='none' }
-function fileToDataURL(file){
-  return new Promise((res, rej)=>{
-    const r = new FileReader();
-    r.onload = ()=> res(r.result);
-    r.onerror = e=> rej(e);
-    r.readAsDataURL(file);
-  });
-}
-
-/* =========================
-   AUTH: Sign up / Login
-   ========================= */
-pfpInput.addEventListener('change', async (e)=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  const url = await fileToDataURL(f);
-  pfpPreview.src = url;
-  pfpPreview.style.display = 'block';
-});
-
-signupBtn.addEventListener('click', async ()=>{
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value;
-  if(!username || !password){ statusEl.textContent='Enter username & password'; return; }
-  const uname = normalizeUsername(username);
-  const email = `${uname}@chat.local`;
-
-  try{
-    const cred = await auth.createUserWithEmailAndPassword(email, password);
-    currentUser = cred.user;
-
-    // read optional pfp and save to Firestore as base64
-    let pfpData = "";
-    const f = pfpInput.files[0];
-    if(f){
-      const dataUrl = await fileToDataURL(f);
-      pfpData = dataUrl;
-    }
-
-    await db.collection('users').doc(currentUser.uid).set({
-      username: username,
-      pfp: pfpData
-    });
-
-    initChat();
-  }catch(err){ statusEl.textContent = err.message; }
-});
-
-loginBtn.addEventListener('click', async ()=>{
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value;
-  if(!username || !password){ statusEl.textContent='Enter username & password'; return; }
-  const uname = normalizeUsername(username);
-  const email = `${uname}@chat.local`;
-
-  try{
-    const cred = await auth.signInWithEmailAndPassword(email, password);
-    currentUser = cred.user;
-    initChat();
-  }catch(err){ statusEl.textContent='Invalid credentials'; }
-});
-
-/* =========================
-   Initialize chat (after login)
-   ========================= */
-async function initChat(){
-  // Ensure global chat doc exists
-  const globalRef = db.collection('chats').doc('global');
-  const g = await globalRef.get();
-  if(!g.exists){
-    await globalRef.set({ name: 'Global', members: [] });
-  }
-
-  loginDiv.style.display = 'none';
-  chatDiv.style.display = 'flex';
-  statusEl.textContent = '';
-  await loadUsers();
-  listenChats();
-  switchChat('global');
-  if(Notification.permission !== 'granted') Notification.requestPermission();
-  renderShortUserList();
-}
-
-/* =========================
-   USERS: load and render short list
-   ========================= */
-async function loadUsers(){
-  const snap = await db.collection('users').get();
-  allUsers = snap.docs.map(d=>({id:d.id, ...d.data()}));
-  // ensure username used consistently
-  allUsers.forEach(u=>{ if(!u.username) u.username = 'unknown'; });
-}
-
-function renderShortUserList(){
-  shortUserList.innerHTML = '';
-  allUsers.forEach(u=>{
-    const d = document.createElement('div');
-    d.style.display='flex'; d.style.alignItems='center'; d.style.gap='8px';
-    const img = document.createElement('img'); img.src = u.pfp || 'https://placehold.co/40'; img.style.width='28px'; img.style.height='28px'; img.style.borderRadius='50%'; img.style.objectFit='cover';
-    const span = document.createElement('div'); span.textContent = u.username; span.style.color = 'var(--muted)'; span.style.fontSize='0.95rem';
-    d.appendChild(img); d.appendChild(span);
-    shortUserList.appendChild(d);
-  });
-}
-
-/* =========================
-   CHATS & MESSAGES
-   ========================= */
-function listenChats(){
-  db.collection('chats').onSnapshot(async snap=>{
-    chatListEl.innerHTML = '';
-    // global chat entry
-    const liGlobal = document.createElement('li');
-    liGlobal.textContent = '🌍 Global Chat';
-    liGlobal.dataset.id = 'global';
-    liGlobal.style.listStyle='none';
-    liGlobal.style.padding='10px';
-    liGlobal.style.borderRadius='8px';
-    liGlobal.style.cursor='pointer';
-    if(currentChatId==='global') liGlobal.style.background='var(--accent)';
-    liGlobal.addEventListener('click', ()=> switchChat('global'));
-    chatListEl.appendChild(liGlobal);
-
-    snap.docs.forEach(doc=>{
-      const data = doc.data();
-      // show chats where currentUser is a member
-      if(data.members && currentUser && data.members.includes(currentUser.uid)){
-        const li = document.createElement('li');
-        li.textContent = data.name;
-        li.dataset.id = doc.id;
-        li.style.padding='10px';
-        li.style.borderRadius='8px';
-        li.style.cursor='pointer';
-        if(doc.id === currentChatId) li.style.background='var(--accent)';
-        li.addEventListener('click', ()=> switchChat(doc.id));
-        chatListEl.appendChild(li);
-      }
-    });
-  });
-}
-
-function switchChat(chatId){
-  currentChatId = chatId;
-  document.getElementById('chatTitle').textContent = (chatId==='global') ? 'Global Chat' : `Chat: ${chatId}`;
-  // update active style - quick naive approach
-  Array.from(chatListEl.children).forEach(li=>li.style.background='');
-  const found = Array.from(chatListEl.children).find(li=>li.dataset && li.dataset.id===chatId);
-  if(found) found.style.background = 'var(--accent)';
-  listenMessages(chatId);
-}
-
-function listenMessages(chatId){
-  if(unsubscribeMsg) unsubscribeMsg();
-  const coll = (chatId==='global') ? db.collection('chats').doc('global').collection('messages') : db.collection('chats').doc(chatId).collection('messages');
-  unsubscribeMsg = coll.orderBy('time').onSnapshot(snapshot=>{
-    messagesEl.innerHTML = '';
-    snapshot.docs.forEach(doc=>{
-      const d = doc.data();
-      addMessageToDOM(d);
-    });
-  });
-}
-
-async function addMessageToDOM(msg){
-  const div = document.createElement('div');
-  div.classList.add('message');
-  div.classList.add(msg.senderId === (currentUser && currentUser.uid) ? 'mine' : 'their');
-
-  const username = msg.username || 'unknown';
-  const ts = formatTime(msg.time);
-
-  // text with highlighted mentions
-  let text = msg.text || '';
-  text = text.replace(/@([^\s@]+)/g, (m, u)=> `<span class="mention">@${u}</span>`);
-
-  // attachments (data URLs) - render based on mime/type
-  if(msg.type === 'file' && msg.fileData){
-    const mime = msg.fileType || '';
-    if(mime.startsWith('image/')){
-      text += `<img src="${msg.fileData}" class="chat-img" />`;
-    } else if(mime.startsWith('video/')){
-      text += `<video src="${msg.fileData}" class="chat-video" controls></video>`;
-    } else if(mime.startsWith('audio/')){
-      text += `<audio src="${msg.fileData}" class="chat-audio" controls></audio>`;
-    } else {
-      // generic download link
-      text += `<a href="${msg.fileData}" download="${msg.fileName}">📎 ${msg.fileName}</a>`;
-    }
-  }
-
-  const pfpSrc = msg.pfp || 'https://placehold.co/40';
-  div.innerHTML = `
-    <img src="${pfpSrc}" class="pfp" />
-    <div class="content">
-      <div class="meta">${username} ${ts ? '- ' + ts : ''}</div>
-      <div class="body">${text}</div>
-    </div>
-  `;
-
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-
-  // Do in-app notification logic
-  if(currentUser && msg.senderId !== currentUser.uid){
-    const shouldNotify = document.visibilityState !== 'visible' || (msg.mentions && msg.mentions.includes(await getMyUsername()));
-    if(shouldNotify && Notification.permission === 'granted'){
-      try{
-        new Notification(username, { body: (msg.text || msg.fileName || 'New message'), icon: pfpSrc });
-      }catch(e){}
-    }
+/* ======================
+   NOTIFICATIONS (iOS SAFE)
+   ====================== */
+async function enableNotifications(){
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "default") {
+    await Notification.requestPermission();
   }
 }
 
-/* =========================
-   SEND MESSAGE & ATTACHMENTS
-   ========================= */
-messageInput.addEventListener('keypress', e=>{ if(e.key === 'Enter') sendBtn.click(); });
+/* ======================
+   MESSAGE NOTIFICATION
+   ====================== */
+async function notify(msg){
+  if (
+    Notification.permission === "granted" &&
+    document.visibilityState !== "visible"
+  ){
+    try{
+      new Notification(msg.username || "New message", {
+        body: msg.text || "New message",
+        icon: "icons/icon-192.png"
+      });
+    }catch(e){}
+  }
+}
 
-sendBtn.addEventListener('click', async ()=>{
-  if(!currentUser){ alert('Not logged in'); return; }
-  const text = messageInput.value.trim();
-  if(!text) return;
+/* ======================
+   AUTH
+   ====================== */
+const loginDiv = document.getElementById("loginDiv");
+const chatDiv = document.getElementById("chatDiv");
 
-  // detect mentions
-  const mentioned = (text.match(/@([^\s@]+)/g) || []).map(s=>s.slice(1));
+loginBtn.onclick = async ()=>{
+  await auth.signInWithEmailAndPassword(
+    username.value + "@chat.local",
+    password.value
+  );
+};
 
-  // include latest username and pfp from users doc
-  const userDoc = await db.collection('users').doc(currentUser.uid).get();
-  const u = userDoc.exists ? userDoc.data() : { username: usernameInput.value || 'me', pfp: '' };
+signupBtn.onclick = async ()=>{
+  await auth.createUserWithEmailAndPassword(
+    username.value + "@chat.local",
+    password.value
+  );
+};
 
-  const coll = (currentChatId==='global') ? db.collection('chats').doc('global').collection('messages') : db.collection('chats').doc(currentChatId).collection('messages');
+auth.onAuthStateChanged(u=>{
+  if(u){
+    loginDiv.style.display="none";
+    chatDiv.style.display="flex";
+    enableNotifications();
+    listenMessages();
+  }
+});
 
-  await coll.add({
-    text: text,
-    type: 'text',
-    senderId: currentUser.uid,
-    username: u.username || usernameInput.value,
-    pfp: u.pfp || '',
-    mentions: mentioned,
+/* ======================
+   MESSAGES
+   ====================== */
+function listenMessages(){
+  db.collection("messages").orderBy("time").onSnapshot(snap=>{
+    messages.innerHTML="";
+    snap.forEach(doc=>{
+      const m = doc.data();
+      const d = document.createElement("div");
+      d.className="message " + (m.uid===auth.currentUser.uid?"mine":"their");
+      d.innerHTML = `
+        <img class="pfp" src="${m.pfp||'https://placehold.co/40'}">
+        <div>${m.text}</div>
+      `;
+      messages.appendChild(d);
+      notify(m);
+    });
+    messages.scrollTop = messages.scrollHeight;
+  });
+}
+
+sendBtn.onclick = async ()=>{
+  if(!messageInput.value.trim()) return;
+  await db.collection("messages").add({
+    text: messageInput.value,
+    uid: auth.currentUser.uid,
+    username: username.value,
     time: firebase.firestore.FieldValue.serverTimestamp()
   });
-
-  messageInput.value = '';
-});
-
-attachBtn.addEventListener('click', ()=> fileInput.click());
-
-fileInput.addEventListener('change', async ()=>{
-  const file = fileInput.files[0];
-  if(!file) return;
-
-  if(file.size > ATTACHMENT_SIZE_LIMIT){
-    alert(`File too big. Max size ${Math.round(ATTACHMENT_SIZE_LIMIT/1024)} KB to keep Firestore doc size safe.`);
-    fileInput.value = '';
-    return;
-  }
-
-  const dataUrl = await fileToDataURL(file);
-  // store in message as fileData + type
-  const userDoc = await db.collection('users').doc(currentUser.uid).get();
-  const u = userDoc.exists ? userDoc.data() : { username: usernameInput.value || 'me', pfp: '' };
-  const coll = (currentChatId==='global') ? db.collection('chats').doc('global').collection('messages') : db.collection('chats').doc(currentChatId).collection('messages');
-
-  await coll.add({
-    text: '',
-    type: 'file',
-    fileData: dataUrl,
-    fileType: file.type,
-    fileName: file.name,
-    senderId: currentUser.uid,
-    username: u.username || usernameInput.value,
-    pfp: u.pfp || '',
-    mentions: [],
-    time: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-  fileInput.value = '';
-});
-
-/* =========================
-   CHAT CREATION
-   ========================= */
-newChatBtn.addEventListener('click', async ()=>{
-  await loadUsers();
-  renderUserSelection();
-  showModal(newChatModal);
-});
-cancelCreateChatBtn.addEventListener('click', ()=> hideModal(newChatModal));
-
-function renderUserSelection(){
-  userListEl.innerHTML = '';
-  allUsers.forEach(u=>{
-    const div = document.createElement('div');
-    div.className = 'user-item';
-    div.textContent = u.username;
-    div.dataset.id = u.id;
-    div.addEventListener('click', ()=> div.classList.toggle('selected'));
-    userListEl.appendChild(div);
-  });
-}
-
-createChatBtn.addEventListener('click', async ()=>{
-  const selected = Array.from(userListEl.querySelectorAll('.user-item.selected')).map(el=>el.dataset.id);
-  if(selected.length === 0){ alert('Select at least one user'); return; }
-  const name = chatNameInput.value.trim() || 'Group Chat';
-  // include current user
-  selected.push(currentUser.uid);
-  await db.collection('chats').add({ name, members: selected });
-  hideModal(newChatModal);
-  chatNameInput.value = '';
-});
-
-/* =========================
-   SETTINGS: open/save
-   ========================= */
-settingsBtn.addEventListener('click', async ()=>{
-  if(!currentUser) return;
-  const doc = await db.collection('users').doc(currentUser.uid).get();
-  const d = doc.exists ? doc.data() : {};
-  settingsUsername.value = d.username || usernameInput.value || '';
-  settingsPfpPreview.src = d.pfp || 'https://placehold.co/80';
-  settingsPfpPreview.style.display = 'block';
-  myUidEl.textContent = currentUser.uid;
-  showModal(settingsModal);
-});
-
-closeSettingsBtn.addEventListener('click', ()=> hideModal(settingsModal));
-
-settingsPfp.addEventListener('change', async (e)=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  // small resize could be added; we just convert to dataURL
-  const data = await fileToDataURL(f);
-  settingsPfpPreview.src = data;
-});
-
-saveSettingsBtn.addEventListener('click', async ()=>{
-  if(!currentUser) return;
-  const updates = {};
-  if(settingsUsername.value.trim()) updates.username = settingsUsername.value.trim();
-  if(settingsPfpPreview.src) updates.pfp = settingsPfpPreview.src;
-  await db.collection('users').doc(currentUser.uid).update(updates);
-
-  // update local allUsers & messages? We'll reload minimal
-  await loadUsers();
-  renderShortUserList();
-  hideModal(settingsModal);
-  alert('Saved!');
-});
-
-/* =========================
-   UTILS
-   ========================= */
-async function getMyUsername(){
-  if(!currentUser) return '';
-  const doc = await db.collection('users').doc(currentUser.uid).get();
-  return doc.exists ? doc.data().username : '';
-}
-
-/* =========================
-   AUTH STATE handling
-   ========================= */
-auth.onAuthStateChanged(async user=>{
-  currentUser = user;
-  if(user){
-    // ensure global chat doc exists (simple)
-    const globalRef = db.collection('chats').doc('global');
-    const g = await globalRef.get();
-    if(!g.exists) await globalRef.set({ name: 'Global', members: [] }); // members empty: treat as public
-    // show chat
-    initChat();
-  } else {
-    // show login
-    loginDiv.style.display = 'block';
-    chatDiv.style.display = 'none';
-  }
-});
-
-/* =========================
-   LOGOUT
-   ========================= */
-document.getElementById('logoutBtn').addEventListener('click', async ()=>{
-  await auth.signOut();
-  location.reload();
-});
-
-/* =========================
-   Close modals when clicking background
-   ========================= */
-[ newChatModal, settingsModal ].forEach(mod=>{
-  mod.addEventListener('click', e=>{
-    if(e.target === mod) hideModal(mod);
-  });
-});
+  messageInput.value="";
+};
 </script>
 </body>
 </html>
