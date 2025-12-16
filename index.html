@@ -11,194 +11,71 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
-/* =======================
-   VIEWPORT — CORRECT WAY
-   ======================= */
-:root {
-  --vh: 100vh;
-}
-@supports (height: 100dvh) {
-  :root { --vh: 100dvh; }
+/* ===== VIEWPORT FIX ===== */
+:root{--vh:100vh}
+@supports(height:100dvh){:root{--vh:100dvh}}
+
+html,body{
+  margin:0;height:100%;overflow:hidden;
+  background:#121212;color:#e0e0e0;
+  font-family:system-ui,-apple-system,sans-serif;
 }
 
-html, body {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  background: #121212;
-  color: #e0e0e0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+/* ===== LOGIN ===== */
+.login-container{
+  width:320px;margin:48px auto;padding:18px;
+  background:#1f1f1f;border-radius:12px;
+  display:flex;flex-direction:column;gap:10px;
 }
+.login-container input,button{
+  padding:10px;border-radius:8px;border:none;
+}
+.login-container input{background:#2c2c2c;color:#fff}
+.login-container button{background:#2196f3;color:#fff;font-weight:700}
 
-/* =======================
-   APP LAYOUT
-   ======================= */
-.chat-container {
-  display: flex;
-  height: var(--vh);
-  max-height: var(--vh);
-  width: 100%;
-  overflow: hidden;
+/* ===== LAYOUT ===== */
+.chat-container{
+  display:flex;width:100%;
+  height:var(--vh);max-height:var(--vh);
+  overflow:hidden;
 }
+.sidebar{
+  width:260px;background:#1f1f1f;
+  padding:14px;overflow:hidden;flex-shrink:0;
+}
+.chat-main{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;
+  background:#181818;
+}
+.chat-top{
+  padding:10px 16px;border-bottom:1px solid #222;
+}
+.messages{
+  flex:1;min-height:0;
+  padding:16px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:12px;
+}
+.message{max-width:72%;padding:10px 14px;border-radius:12px}
+.mine{align-self:flex-end;background:#4caf50;color:#fff}
+.their{align-self:flex-start;background:#2c2c2c}
+.message img{max-width:220px;border-radius:8px;margin-top:6px}
 
-/* =======================
-   SIDEBAR (NO SCROLL)
-   ======================= */
-.sidebar {
-  width: 260px;
-  background: #1f1f1f;
-  padding: 14px;
-  overflow: hidden;
-  flex-shrink: 0;
-  touch-action: none;
+/* ===== INPUT ===== */
+.input-container{
+  display:flex;gap:8px;padding:12px;
+  background:#1f1f1f;border-top:1px solid #222;
+  flex-shrink:0;
 }
+#messageInput{
+  flex:1;padding:10px;border-radius:8px;
+  border:none;background:#2c2c2c;color:#fff;
+}
+.attach-btn input{display:none}
+.attach-btn{padding:10px;border-radius:8px;background:#444;cursor:pointer}
 
-.sidebar button {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #2196f3;
-  color: #fff;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-#chatList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-#chatList li {
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-#chatList li:hover {
-  background: #2a2a2a;
-}
-
-/* =======================
-   CHAT COLUMN
-   ======================= */
-.chat-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  background: #181818;
-  height: 100%;
-}
-
-/* header */
-.chat-top {
-  padding: 10px 16px;
-  border-bottom: 1px solid #222;
-  flex-shrink: 0;
-}
-
-/* =======================
-   MESSAGES — ONLY SCROLLER
-   ======================= */
-.messages {
-  flex: 1 1 auto;
-  min-height: 0; /* REQUIRED */
-  padding: 16px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* messages */
-.message {
-  max-width: 72%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  word-wrap: break-word;
-}
-.mine {
-  align-self: flex-end;
-  background: #4caf50;
-  color: #fff;
-}
-.their {
-  align-self: flex-start;
-  background: #2c2c2c;
-}
-
-.message img {
-  max-width: 220px;
-  border-radius: 8px;
-  margin-top: 6px;
-}
-
-/* =======================
-   INPUT BAR — PINNED
-   ======================= */
-.input-container {
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  background: #1f1f1f;
-  border-top: 1px solid #222;
-  flex-shrink: 0; /* IMPORTANT */
-}
-
-#messageInput {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #2c2c2c;
-  color: #fff;
-}
-
-.attach-btn input { display: none; }
-.attach-btn {
-  padding: 10px;
-  border-radius: 8px;
-  background: #444;
-  cursor: pointer;
-}
-
-/* =======================
-   LOGIN
-   ======================= */
-.login-container {
-  width: 320px;
-  margin: 48px auto;
-  padding: 18px;
-  background: #1f1f1f;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.login-container input,
-.login-container button {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-}
-.login-container input {
-  background: #2c2c2c;
-  color: #fff;
-}
-.login-container button {
-  background: #2196f3;
-  color: #fff;
-  font-weight: 700;
-}
-
-/* =======================
-   MOBILE
-   ======================= */
-@media (max-width: 800px) {
-  .sidebar { display: none; }
-}
+/* ===== MOBILE ===== */
+@media(max-width:800px){.sidebar{display:none}}
 </style>
 </head>
 
@@ -211,20 +88,19 @@ html, body {
   <input id="password" type="password" placeholder="Password">
   <button id="loginBtn">Login</button>
   <button id="signupBtn">Sign Up</button>
+  <p id="status" style="color:#888;font-size:.9rem"></p>
 </div>
 
 <!-- CHAT -->
-<div id="chatDiv" class="chat-container" style="display:none;">
+<div id="chatDiv" class="chat-container" style="display:none">
   <div class="sidebar">
     <button id="newChatBtn">+ New Chat</button>
-    <h3>Chats</h3>
     <ul id="chatList"></ul>
   </div>
 
   <div class="chat-main">
     <div class="chat-top" id="chatTitle">Global Chat</div>
     <div id="messages" class="messages"></div>
-
     <div class="input-container">
       <label class="attach-btn">📎
         <input type="file" id="fileInput">
@@ -235,6 +111,61 @@ html, body {
   </div>
 </div>
 
-<!-- Firebase + your existing JS stays unchanged -->
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyAU1SHuBd24zNgP11D6aOPV3w0YFxz8bso",
+  authDomain:"cchhatteerr.firebaseapp.com",
+  projectId:"cchhatteerr"
+});
+
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+const loginDiv=document.getElementById("loginDiv");
+const chatDiv=document.getElementById("chatDiv");
+const statusEl=document.getElementById("status");
+
+const username=document.getElementById("username");
+const password=document.getElementById("password");
+
+loginBtn.onclick=async()=>{
+  try{
+    const email=username.value.trim().toLowerCase()+"@chat.local";
+    await auth.signInWithEmailAndPassword(email,password.value);
+  }catch(e){statusEl.textContent=e.message}
+};
+
+signupBtn.onclick=async()=>{
+  try{
+    const email=username.value.trim().toLowerCase()+"@chat.local";
+    const cred=await auth.createUserWithEmailAndPassword(email,password.value);
+    await db.collection("users").doc(cred.user.uid).set({
+      username:username.value
+    });
+  }catch(e){statusEl.textContent=e.message}
+};
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    loginDiv.style.display="none";
+    chatDiv.style.display="flex";
+    loadGlobal();
+  }else{
+    chatDiv.style.display="none";
+    loginDiv.style.display="block";
+  }
+});
+
+function loadGlobal(){
+  db.collection("chats").doc("global").set(
+    {name:"Global",members:[]},{merge:true}
+  );
+}
+</script>
 </body>
 </html>
