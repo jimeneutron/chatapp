@@ -3,82 +3,65 @@
 <head>
 <meta charset="utf-8">
 <title>ChatterChat</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#121212">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
-/* ===== VIEWPORT FIX ===== */
 :root{--vh:100vh}
 @supports(height:100dvh){:root{--vh:100dvh}}
 
-html,body{
-  margin:0;height:100%;overflow:hidden;
-  background:#121212;color:#e0e0e0;
-  font-family:system-ui,-apple-system,sans-serif;
-}
+html,body{margin:0;height:100%;overflow:hidden;background:#121212;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif}
 
-/* ===== LOGIN ===== */
-.login-container{
-  width:320px;margin:48px auto;padding:18px;
-  background:#1f1f1f;border-radius:12px;
-  display:flex;flex-direction:column;gap:10px;
-}
-.login-container input,button{
-  padding:10px;border-radius:8px;border:none;
-}
+/* Login */
+.login-container{width:320px;margin:48px auto;padding:18px;background:#1f1f1f;border-radius:12px;display:flex;flex-direction:column;gap:10px}
+.login-container input,button{padding:10px;border-radius:8px;border:none}
 .login-container input{background:#2c2c2c;color:#fff}
 .login-container button{background:#2196f3;color:#fff;font-weight:700}
+#status{color:#888;font-size:.85rem;min-height:18px}
 
-/* ===== LAYOUT ===== */
-.chat-container{
-  display:flex;width:100%;
-  height:var(--vh);max-height:var(--vh);
-  overflow:hidden;
-}
-.sidebar{
-  width:260px;background:#1f1f1f;
-  padding:14px;overflow:hidden;flex-shrink:0;
-}
-.chat-main{
-  flex:1;min-width:0;
-  display:flex;flex-direction:column;
-  background:#181818;
-}
-.chat-top{
-  padding:10px 16px;border-bottom:1px solid #222;
-}
-.messages{
-  flex:1;min-height:0;
-  padding:16px;overflow-y:auto;
-  display:flex;flex-direction:column;gap:12px;
-}
-.message{max-width:72%;padding:10px 14px;border-radius:12px}
-.mine{align-self:flex-end;background:#4caf50;color:#fff}
-.their{align-self:flex-start;background:#2c2c2c}
-.message img{max-width:220px;border-radius:8px;margin-top:6px}
+/* Layout */
+.chat-container{display:flex;height:var(--vh);max-height:var(--vh);overflow:hidden}
+.sidebar{width:260px;background:#1f1f1f;padding:14px;overflow:hidden;flex-shrink:0;touch-action:none}
+.sidebar button{width:100%;padding:10px;border-radius:8px;border:none;background:#2196f3;color:#fff;font-weight:700;margin-bottom:10px}
+#chatList{list-style:none;padding:0;margin:0}
+#chatList li{padding:8px;border-radius:8px;cursor:pointer}
+#chatList li:hover{background:#2a2a2a}
 
-/* ===== INPUT ===== */
-.input-container{
-  display:flex;gap:8px;padding:12px;
-  background:#1f1f1f;border-top:1px solid #222;
-  flex-shrink:0;
-}
-#messageInput{
-  flex:1;padding:10px;border-radius:8px;
-  border:none;background:#2c2c2c;color:#fff;
-}
+/* Chat */
+.chat-main{flex:1;min-width:0;display:flex;flex-direction:column;background:#181818}
+.chat-top{padding:10px 16px;border-bottom:1px solid #222;flex-shrink:0}
+.messages{flex:1;min-height:0;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+
+/* Messages */
+.message{max-width:72%;padding:10px 14px;border-radius:12px;word-wrap:break-word;display:flex;gap:10px;align-items:flex-start;position:relative}
+.message.mine{align-self:flex-end;background:#4caf50;color:#fff;flex-direction:row-reverse}
+.message.their{align-self:flex-start;background:#2c2c2c}
+.message .pfp{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.message .content{display:flex;flex-direction:column}
+.message .meta{font-size:.75rem;color:#888;margin-bottom:6px}
+.chat-img,.chat-video,.chat-audio{border-radius:10px;max-width:280px;margin-top:6px}
+
+/* Input bar */
+.input-container{display:flex;gap:8px;padding:12px;background:#1f1f1f;border-top:1px solid #222;flex-shrink:0}
+#messageInput{flex:1;padding:10px;border-radius:8px;border:none;background:#2c2c2c;color:#fff}
+#sendBtn,#attachBtn{padding:10px 14px;border-radius:8px;border:none;background:#2196f3;color:#fff;cursor:pointer;font-weight:700}
+#sendBtn:hover,#attachBtn:hover{background:#1976d2}
 .attach-btn input{display:none}
-.attach-btn{padding:10px;border-radius:8px;background:#444;cursor:pointer}
 
-/* ===== MOBILE ===== */
+/* Modals */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:40}
+.modal-content{background:#1f1f1f;padding:18px;border-radius:12px;width:340px;max-height:80%;overflow:auto}
+.user-item{padding:8px;border-radius:8px;margin-bottom:6px;cursor:pointer}
+.user-item:hover{background:#333}
+.user-item.selected{background:#2196f3;color:#fff}
+
+/* Responsive */
 @media(max-width:800px){.sidebar{display:none}}
 </style>
 </head>
-
 <body>
 
 <!-- LOGIN -->
@@ -86,86 +69,211 @@ html,body{
   <h2>ChatterChat</h2>
   <input id="username" placeholder="Username">
   <input id="password" type="password" placeholder="Password">
-  <button id="loginBtn">Login</button>
-  <button id="signupBtn">Sign Up</button>
-  <p id="status" style="color:#888;font-size:.9rem"></p>
+  <input id="pfpInput" type="file" accept="image/*">
+  <img id="pfpPreview" style="width:64px;height:64px;border-radius:50%;display:none;margin-top:8px"/>
+  <div style="display:flex;gap:8px">
+    <button id="loginBtn">Login</button>
+    <button id="signupBtn">Sign Up</button>
+  </div>
+  <p id="status"></p>
 </div>
 
 <!-- CHAT -->
 <div id="chatDiv" class="chat-container" style="display:none">
   <div class="sidebar">
     <button id="newChatBtn">+ New Chat</button>
+    <button id="settingsBtn">⚙️ Settings</button>
+    <h3>Chats</h3>
     <ul id="chatList"></ul>
+    <h3>Users</h3>
+    <div id="shortUserList" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
-
   <div class="chat-main">
     <div class="chat-top" id="chatTitle">Global Chat</div>
     <div id="messages" class="messages"></div>
     <div class="input-container">
-      <label class="attach-btn">📎
-        <input type="file" id="fileInput">
-      </label>
+      <label class="attach-btn">📎<input type="file" id="fileInput"></label>
       <input id="messageInput" placeholder="Type a message…">
       <button id="sendBtn">Send</button>
     </div>
   </div>
 </div>
 
-<!-- FIREBASE -->
+<!-- MODALS -->
+<div id="newChatModal" class="modal"><div class="modal-content">
+  <h3>Create Chat</h3>
+  <input id="chatNameInput" placeholder="Chat name" style="width:100%;padding:8px;border-radius:6px;border:none;background:#2c2c2c;color:#e0e0e0"/>
+  <p>Select participants</p>
+  <div id="userList"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button id="createChatBtn">Create</button>
+    <button id="cancelCreateChatBtn">Cancel</button>
+  </div>
+</div></div>
+
+<div id="settingsModal" class="modal"><div class="modal-content">
+  <h3>Settings</h3>
+  <input id="settingsUsername" type="text" placeholder="Username" style="width:100%;padding:8px;border-radius:6px;border:none;background:#2c2c2c;color:#e0e0e0"/>
+  <input id="settingsPfp" type="file" accept="image/*">
+  <img id="settingsPfpPreview" style="width:72px;height:72px;border-radius:50%;display:block;margin-top:8px"/>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button id="saveSettingsBtn">Save</button>
+    <button id="closeSettingsBtn">Close</button>
+  </div>
+  <button id="logoutBtn" style="margin-top:12px">Log out</button>
+</div></div>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-firebase.initializeApp({
+// =================== CONFIG ===================
+const firebaseConfig = {
   apiKey:"AIzaSyAU1SHuBd24zNgP11D6aOPV3w0YFxz8bso",
   authDomain:"cchhatteerr.firebaseapp.com",
   projectId:"cchhatteerr"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// =================== DOM ===================
+const loginDiv = document.getElementById('loginDiv');
+const chatDiv = document.getElementById('chatDiv');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+const signupBtn = document.getElementById('signupBtn');
+const statusEl = document.getElementById('status');
+const pfpInput = document.getElementById('pfpInput');
+const pfpPreview = document.getElementById('pfpPreview');
+
+const chatListEl = document.getElementById('chatList');
+const messagesEl = document.getElementById('messages');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const fileInput = document.getElementById('fileInput');
+
+// =================== STATE ===================
+let currentUser = null;
+let currentChatId = 'global';
+let unsubscribeMsg = null;
+let allUsers = [];
+
+// =================== HELPERS ===================
+function fileToDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=e=>rej(e);r.readAsDataURL(file);});}
+function normalizeUsername(u){return u.trim().toLowerCase().replace(/\s+/g,'_');}
+function formatTime(d){if(!d)return'';const dt=(d.toDate)?d.toDate():d;return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,'0')+"-"+String(dt.getDate()).padStart(2,'0')+" "+String(dt.getHours()).padStart(2,'0')+":"+String(dt.getMinutes()).padStart(2,'0');}
+
+// =================== AUTH ===================
+pfpInput.addEventListener('change', async e => {const f=e.target.files[0];if(!f)return;const url=await fileToDataURL(f);pfpPreview.src=url;pfpPreview.style.display='block';});
+
+signupBtn.addEventListener('click', async ()=>{
+  const uname = normalizeUsername(usernameInput.value);
+  const email = uname+"@chat.local";
+  const pw = passwordInput.value;
+  if(!uname||!pw){statusEl.textContent='Enter username & password';return;}
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email,pw);
+    currentUser = cred.user;
+    let pfpData = "";
+    if(pfpInput.files[0]) pfpData = await fileToDataURL(pfpInput.files[0]);
+    await db.collection('users').doc(currentUser.uid).set({username:usernameInput.value,pfp:pfpData});
+  }catch(err){statusEl.textContent=err.message;}
 });
 
-const auth=firebase.auth();
-const db=firebase.firestore();
-
-const loginDiv=document.getElementById("loginDiv");
-const chatDiv=document.getElementById("chatDiv");
-const statusEl=document.getElementById("status");
-
-const username=document.getElementById("username");
-const password=document.getElementById("password");
-
-loginBtn.onclick=async()=>{
-  try{
-    const email=username.value.trim().toLowerCase()+"@chat.local";
-    await auth.signInWithEmailAndPassword(email,password.value);
-  }catch(e){statusEl.textContent=e.message}
-};
-
-signupBtn.onclick=async()=>{
-  try{
-    const email=username.value.trim().toLowerCase()+"@chat.local";
-    const cred=await auth.createUserWithEmailAndPassword(email,password.value);
-    await db.collection("users").doc(cred.user.uid).set({
-      username:username.value
-    });
-  }catch(e){statusEl.textContent=e.message}
-};
+loginBtn.addEventListener('click', async ()=>{
+  const uname = normalizeUsername(usernameInput.value);
+  const email = uname+"@chat.local";
+  try{await auth.signInWithEmailAndPassword(email,passwordInput.value);}catch(e){statusEl.textContent=e.message;}
+});
 
 auth.onAuthStateChanged(user=>{
+  currentUser=user;
   if(user){
-    loginDiv.style.display="none";
-    chatDiv.style.display="flex";
-    loadGlobal();
+    loginDiv.style.display='none';
+    chatDiv.style.display='flex';
+    db.collection('chats').doc('global').set({name:'Global',members:[]},{merge:true});
+    loadUsers();
+    listenChats();
+    switchChat('global');
+    if(Notification.permission!=='granted') Notification.requestPermission();
   }else{
-    chatDiv.style.display="none";
-    loginDiv.style.display="block";
+    loginDiv.style.display='block';
+    chatDiv.style.display='none';
   }
 });
 
-function loadGlobal(){
-  db.collection("chats").doc("global").set(
-    {name:"Global",members:[]},{merge:true}
-  );
+// =================== USERS ===================
+async function loadUsers(){
+  const snap=await db.collection('users').get();
+  allUsers=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderShortUserList();
 }
+function renderShortUserList(){
+  const list = document.getElementById('shortUserList'); list.innerHTML='';
+  allUsers.forEach(u=>{const d=document.createElement('div');d.style.display='flex';d.style.alignItems='center';d.style.gap='8px';const img=document.createElement('img');img.src=u.pfp||'https://placehold.co/40';img.style.width='28px';img.style.height='28px';img.style.borderRadius='50%';img.style.objectFit='cover';const span=document.createElement('div');span.textContent=u.username;span.style.color='#888';span.style.fontSize='.95rem';d.appendChild(img);d.appendChild(span);list.appendChild(d);});
+}
+
+// =================== CHATS ===================
+function listenChats(){
+  db.collection('chats').onSnapshot(snap=>{
+    chatListEl.innerHTML='';
+    const liGlobal=document.createElement('li');liGlobal.textContent='🌍 Global Chat';liGlobal.dataset.id='global';liGlobal.style.listStyle='none';liGlobal.addEventListener('click',()=>switchChat('global'));chatListEl.appendChild(liGlobal);
+    snap.docs.forEach(doc=>{const data=doc.data();if(data.members&&currentUser&&data.members.includes(currentUser.uid)){const li=document.createElement('li');li.textContent=data.name;li.dataset.id=doc.id;li.addEventListener('click',()=>switchChat(doc.id));chatListEl.appendChild(li);}});
+  });
+}
+
+function switchChat(chatId){
+  currentChatId=chatId;
+  document.getElementById('chatTitle').textContent=(chatId==='global')?'Global Chat':`Chat: ${chatId}`;
+  listenMessages(chatId);
+}
+
+// =================== MESSAGES ===================
+function listenMessages(chatId){
+  if(unsubscribeMsg) unsubscribeMsg();
+  const coll=(chatId==='global')?db.collection('chats').doc('global').collection('messages'):db.collection('chats').doc(chatId).collection('messages');
+  unsubscribeMsg=coll.orderBy('time').onSnapshot(snapshot=>{
+    messagesEl.innerHTML='';
+    snapshot.docs.forEach(doc=>addMessageToDOM(doc.data()));
+  });
+}
+async function addMessageToDOM(msg){
+  const div=document.createElement('div');div.classList.add('message');div.classList.add(msg.senderId===currentUser.uid?'mine':'their');
+  const ts=formatTime(msg.time||new Date());
+  let text = msg.text||'';
+  text = text.replace(/@([^\s@]+)/g,(m,u)=>`<span style="color:#2196f3;font-weight:700">@${u}</span>`);
+  if(msg.type==='file'&&msg.fileData){const mime=msg.fileType||'';if(mime.startsWith('image/'))text+=`<img src="${msg.fileData}" class="chat-img">`;else if(mime.startsWith('video/'))text+=`<video src="${msg.fileData}" class="chat-video" controls></video>`;else if(mime.startsWith('audio/'))text+=`<audio src="${msg.fileData}" class="chat-audio" controls></audio>`;else text+=`<a href="${msg.fileData}" download="${msg.fileName}">📎 ${msg.fileName}</a>`;}
+  const pfpSrc=msg.pfp||'https://placehold.co/40';
+  div.innerHTML=`<img src="${pfpSrc}" class="pfp"><div class="content"><div class="meta">${msg.username||'unknown'} - ${ts}</div><div class="body">${text}</div></div>`;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop=messagesEl.scrollHeight;
+}
+
+// =================== SEND ===================
+sendBtn.addEventListener('click',async()=>{
+  if(!currentUser) return;
+  const text=messageInput.value.trim();if(!text)return;
+  const coll=(currentChatId==='global')?db.collection('chats').doc('global').collection('messages'):db.collection('chats').doc(currentChatId).collection('messages');
+  const doc = await db.collection('users').doc(currentUser.uid).get();
+  const u = doc.exists?doc.data():{username:usernameInput.value||'me',pfp:''};
+  await coll.add({text,type:'text',senderId:currentUser.uid,username:u.username||'me',pfp:u.pfp||'',mentions:(text.match(/@([^\s@]+)/g)||[]).map(s=>s.slice(1)),time:firebase.firestore.FieldValue.serverTimestamp()});
+  messageInput.value='';
+});
+
+fileInput.addEventListener('change',async()=>{
+  if(!fileInput.files[0])return;
+  const file=fileInput.files[0];if(file.size>2048*2048){alert("File too big");fileInput.value='';return;}
+  const dataUrl=await fileToDataURL(file);
+  const coll=(currentChatId==='global')?db.collection('chats').doc('global').collection('messages'):db.collection('chats').doc(currentChatId).collection('messages');
+  const doc=await db.collection('users').doc(currentUser.uid).get();
+  const u=doc.exists?doc.data():{username:usernameInput.value||'me',pfp:''};
+  await coll.add({text:'',type:'file',fileData:dataUrl,fileType:file.type,fileName:file.name,senderId:currentUser.uid,username:u.username||'me',pfp:u.pfp||'',mentions:[],time:firebase.firestore.FieldValue.serverTimestamp()});
+  fileInput.value='';
+});
 </script>
 </body>
 </html>
