@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Chat app</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ChatterChat — Free (Firestore-only attachments & pfps)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -13,9 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="ChatterChat">
 
 <style>
-/* =======================
-   GLOBAL LOCKS
-   ======================= */
+/* ================= GLOBAL LOCK ================= */
 html, body {
   margin: 0;
   height: 100%;
@@ -26,96 +24,91 @@ html, body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* =======================
-   VARIABLES
-   ======================= */
+/* ================= VARIABLES ================= */
 :root{
   --bg:#121212;
-  --sidebar:#1f1f1f;
-  --chat:#181818;
-  --accent:#2196f3;
-  --mine:#4caf50;
-  --their:#2c2c2c;
+  --sidebar-bg:#1f1f1f;
+  --chat-bg:#181818;
+  --text:#e0e0e0;
   --muted:#888;
+  --mine-bg:#4caf50;
+  --their-bg:#2c2c2c;
+  --accent:#2196f3;
   --radius:12px;
 }
 
-/* =======================
-   LOGIN
-   ======================= */
+/* ================= LOGIN ================= */
 .login-container{
   width:320px;
-  margin:60px auto;
-  padding:18px;
-  background:var(--sidebar);
-  border-radius:var(--radius);
+  margin:48px auto;
   display:flex;
   flex-direction:column;
   gap:10px;
+  background:var(--sidebar-bg);
+  padding:18px;
+  border-radius:var(--radius);
 }
-.login-container input,
+.login-container input{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:#2c2c2c;
+  color:var(--text);
+}
 .login-container button{
   padding:10px;
   border-radius:8px;
   border:none;
-}
-.login-container input{
-  background:#2c2c2c;
-  color:#fff;
-}
-.login-container button{
   background:var(--accent);
   color:#fff;
   font-weight:600;
 }
 
-/* =======================
-   LAYOUT
-   ======================= */
+/* ================= LAYOUT ================= */
 .chat-container{
   display:flex;
   height:100vh;
 }
 
-/* ---- SIDEBAR (NO SCROLL EVER) ---- */
+/* ===== SIDEBAR (LOCKED, NO SCROLL EVER) ===== */
 .sidebar{
   width:260px;
-  background:var(--sidebar);
+  background:var(--sidebar-bg);
   padding:16px;
   overflow:hidden;
-  touch-action:none;
   overscroll-behavior:none;
+  touch-action:none;
   box-shadow:2px 0 8px rgba(0,0,0,.5);
 }
+.sidebar h3{margin:6px 0}
 .sidebar button{
   width:100%;
   padding:10px;
-  border:none;
   border-radius:8px;
+  border:none;
   background:var(--accent);
   color:#fff;
   font-weight:700;
   margin-bottom:10px;
 }
 
-/* ---- CHAT MAIN ---- */
+/* ===== CHAT ===== */
 .chat-main{
   flex:1;
   display:flex;
   flex-direction:column;
-  background:var(--chat);
+  background:var(--chat-bg);
 }
-
 .chat-top{
-  padding:12px 16px;
+  padding:10px 18px;
   border-bottom:1px solid #222;
   color:var(--muted);
 }
 
-/* ---- MESSAGES (ONLY SCROLL AREA) ---- */
+/* ===== MESSAGES (ONLY SCROLL AREA) ===== */
 .messages{
   flex:1;
-  padding:16px;
+  padding:18px;
   overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
@@ -123,7 +116,6 @@ html, body {
   flex-direction:column;
   gap:12px;
 }
-
 .message{
   max-width:72%;
   padding:10px 14px;
@@ -133,15 +125,14 @@ html, body {
 }
 .message.mine{
   align-self:flex-end;
-  background:var(--mine);
+  background:var(--mine-bg);
   color:#fff;
   flex-direction:row-reverse;
 }
 .message.their{
   align-self:flex-start;
-  background:var(--their);
+  background:var(--their-bg);
 }
-
 .pfp{
   width:36px;
   height:36px;
@@ -149,21 +140,21 @@ html, body {
   object-fit:cover;
 }
 
-/* ---- INPUT ---- */
+/* ===== INPUT ===== */
 .input-container{
   display:flex;
   gap:8px;
-  padding:12px;
-  background:var(--sidebar);
+  padding:12px 16px;
+  background:var(--sidebar-bg);
   border-top:1px solid #222;
 }
-.input-container input{
+#messageInput{
   flex:1;
   padding:10px;
   border-radius:8px;
   border:none;
   background:#2c2c2c;
-  color:#fff;
+  color:var(--text);
 }
 .input-container button{
   padding:10px 14px;
@@ -174,9 +165,7 @@ html, body {
   font-weight:700;
 }
 
-/* =======================
-   MOBILE
-   ======================= */
+/* ===== MOBILE ===== */
 @media(max-width:800px){
   .sidebar{display:none}
 }
@@ -196,15 +185,19 @@ html, body {
 </div>
 
 <!-- CHAT -->
-<div id="chatDiv" class="chat-container" style="display:none">
+<div id="chatDiv" class="chat-container" style="display:none;">
   <div class="sidebar">
     <button id="newChatBtn">+ New Chat</button>
     <button id="settingsBtn">⚙ Settings</button>
-    <div id="chatList"></div>
+    <h3>Chats</h3>
+    <ul id="chatList"></ul>
   </div>
 
   <div class="chat-main">
-    <div class="chat-top" id="chatTitle">Global Chat</div>
+    <div class="chat-top">
+      <span id="chatTitle">Global Chat</span>
+    </div>
+
     <div id="messages" class="messages"></div>
 
     <div class="input-container">
@@ -220,9 +213,7 @@ html, body {
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-/* ======================
-   FIREBASE CONFIG
-   ====================== */
+/* ================= FIREBASE ================= */
 firebase.initializeApp({
   apiKey: "AIzaSyAU1SHuBd24zNgP11D6aOPV3w0YFxz8bso",
   authDomain: "cchhatteerr.firebaseapp.com",
@@ -231,91 +222,86 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ======================
-   NOTIFICATIONS (iOS SAFE)
-   ====================== */
+/* ================= STATE ================= */
+let currentUser = null;
+
+/* ================= NOTIFICATIONS ================= */
 async function enableNotifications(){
-  if (!("Notification" in window)) return;
-  if (Notification.permission === "default") {
+  if(!("Notification" in window)) return;
+  if(Notification.permission === "default"){
     await Notification.requestPermission();
   }
 }
 
-/* ======================
-   MESSAGE NOTIFICATION
-   ====================== */
-async function notify(msg){
-  if (
-    Notification.permission === "granted" &&
-    document.visibilityState !== "visible"
-  ){
-    try{
-      new Notification(msg.username || "New message", {
-        body: msg.text || "New message",
-        icon: "icons/icon-192.png"
-      });
-    }catch(e){}
-  }
-}
-
-/* ======================
-   AUTH
-   ====================== */
-const loginDiv = document.getElementById("loginDiv");
-const chatDiv = document.getElementById("chatDiv");
-
+/* ================= AUTH ================= */
 loginBtn.onclick = async ()=>{
-  await auth.signInWithEmailAndPassword(
-    username.value + "@chat.local",
-    password.value
-  );
+  const email = username.value.trim().toLowerCase().replace(/\s+/g,'_') + "@chat.local";
+  await auth.signInWithEmailAndPassword(email, password.value);
 };
-
 signupBtn.onclick = async ()=>{
-  await auth.createUserWithEmailAndPassword(
-    username.value + "@chat.local",
-    password.value
-  );
+  const email = username.value.trim().toLowerCase().replace(/\s+/g,'_') + "@chat.local";
+  await auth.createUserWithEmailAndPassword(email, password.value);
 };
 
-auth.onAuthStateChanged(u=>{
+auth.onAuthStateChanged(async u=>{
+  currentUser = u;
   if(u){
     loginDiv.style.display="none";
     chatDiv.style.display="flex";
     enableNotifications();
     listenMessages();
+  } else {
+    loginDiv.style.display="block";
+    chatDiv.style.display="none";
   }
 });
 
-/* ======================
-   MESSAGES
-   ====================== */
+/* ================= MESSAGES ================= */
 function listenMessages(){
-  db.collection("messages").orderBy("time").onSnapshot(snap=>{
-    messages.innerHTML="";
-    snap.forEach(doc=>{
-      const m = doc.data();
-      const d = document.createElement("div");
-      d.className="message " + (m.uid===auth.currentUser.uid?"mine":"their");
-      d.innerHTML = `
-        <img class="pfp" src="${m.pfp||'https://placehold.co/40'}">
-        <div>${m.text}</div>
-      `;
-      messages.appendChild(d);
-      notify(m);
+  db.collection("chats").doc("global").collection("messages")
+    .orderBy("time")
+    .onSnapshot(snap=>{
+      messages.innerHTML="";
+      snap.forEach(doc=>{
+        const m = doc.data();
+        renderMessage(m);
+      });
+      messages.scrollTop = messages.scrollHeight;
     });
-    messages.scrollTop = messages.scrollHeight;
-  });
+}
+
+function renderMessage(m){
+  const div = document.createElement("div");
+  div.className = "message " + (m.senderId === currentUser.uid ? "mine" : "their");
+  div.innerHTML = `
+    <img class="pfp" src="${m.pfp || 'https://placehold.co/40'}">
+    <div>${m.text || ""}</div>
+  `;
+  messages.appendChild(div);
+
+  if(
+    m.senderId !== currentUser.uid &&
+    document.visibilityState !== "visible" &&
+    Notification.permission === "granted"
+  ){
+    new Notification(m.username || "New message", {
+      body: m.text || "New message",
+      icon: m.pfp || "icons/icon-192.png"
+    });
+  }
 }
 
 sendBtn.onclick = async ()=>{
-  if(!messageInput.value.trim()) return;
-  await db.collection("messages").add({
-    text: messageInput.value,
-    uid: auth.currentUser.uid,
+  const txt = messageInput.value.trim();
+  if(!txt) return;
+
+  await db.collection("chats").doc("global").collection("messages").add({
+    text: txt,
+    senderId: currentUser.uid,
     username: username.value,
     time: firebase.firestore.FieldValue.serverTimestamp()
   });
+
   messageInput.value="";
 };
 </script>
