@@ -474,7 +474,73 @@ document.getElementById('logoutBtn').addEventListener('click',async ()=>{
 /* =========================
    AUTH STATE
 ========================= */
-auth.onAuthStateChanged(user=>{
+/* =========================
+   ADMIN CONFIG
+========================= */
+const ADMINS = ['YOUR_UID_HERE']; // <-- put UIDs of admin users here
+function isAdmin(uid){ return ADMINS.includes(uid); }
+
+/* =========================
+   RENDER ADMIN BAN BUTTON
+========================= */
+function renderAdminControls(msg, msgDiv){
+  if(!currentUser || !isAdmin(currentUser.uid)) return;
+  const banBtn = document.createElement('button');
+  banBtn.textContent = 'Ban User';
+  banBtn.style.marginLeft = '8px';
+  banBtn.style.padding = '4px 6px';
+  banBtn.style.fontSize = '0.75rem';
+  banBtn.style.borderRadius = '6px';
+  banBtn.style.border = 'none';
+  banBtn.style.cursor = 'pointer';
+  banBtn.style.background = '#d32f2f';
+  banBtn.style.color = '#fff';
+  banBtn.addEventListener('click', async ()=>{
+    const confirmBan = confirm(`Ban user ${msg.username} and their device?`);
+    if(!confirmBan) return;
+    // Set user as banned in Firebase
+    await db.collection('users').doc(msg.senderId).update({
+      banned: true,
+      banReason: 'Violation',
+      deviceId: msg.deviceId || DEVICE_ID // store deviceId
+    });
+    alert(`User ${msg.username} banned!`);
+  });
+  msgDiv.appendChild(banBtn);
+}
+
+/* =========================
+   MODIFY addMessageToDOM TO INCLUDE ADMIN BUTTON
+========================= */
+async function addMessageToDOM(msg){
+  const div=document.createElement('div'); div.classList.add('message');
+  div.classList.add(msg.senderId===(currentUser&&currentUser.uid)?'mine':'their');
+  let text=msg.text||''; text=text.replace(/@([^\s@]+)/g,(m,u)=>`<span class="mention">@${u}</span>`);
+  if(msg.type==='file'&&msg.fileData){
+    const mime=msg.fileType||'';
+    if(mime.startsWith('image/')) text+=`<img src="${msg.fileData}" class="chat-img">`;
+    else if(mime.startsWith('video/')) text+=`<video src="${msg.fileData}" class="chat-video" controls></video>`;
+    else if(mime.startsWith('audio/')) text+=`<audio src="${msg.fileData}" class="chat-audio" controls></audio>`;
+    else text+=`<a href="${msg.fileData}" download="${msg.fileName}">📎 ${msg.fileName}</a>`;
+  }
+  const pfpSrc=msg.pfp||'https://placehold.co/40';
+  div.innerHTML=`<img src="${pfpSrc}" class="pfp"><div class="content"><div class="meta">${msg.username||'unknown'}${msg.time?'- '+formatTime(msg.time):''}</div><div class="body">${text}</div></div>`;
+  
+  // ADD ADMIN BAN BUTTON
+  renderAdminControls(msg, div);
+
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop=messagesEl.scrollHeight;
+  
+  if(currentUser && msg.senderId!==currentUser.uid){
+    const shouldNotify = document.visibilityState!=='visible';
+    if(shouldNotify && Notification.permission==='granted'){
+      try{ new Notification(msg.username,{body:msg.text||msg.fileName||'New message',icon:pfpSrc}); }catch(e){}
+    }
+  }
+}
+
+  auth.onAuthStateChanged(user=>{
   currentUser=user;
   if(user) initChat();
   else{ loginDiv.style.display='block'; chatDiv.style.display='none'; }
