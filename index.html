@@ -248,6 +248,21 @@ function formatTime(d){
 function showModal(m){ m.style.display='flex' }
 function hideModal(m){ m.style.display='none' }
 function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=e=>rej(e); r.readAsDataURL(file); }); }
+/* =========================
+   MESSAGE FILTER (ADDED)
+========================= */
+let BLOCKED_STRINGS = [
+  "badword",
+  "example phrase",
+  "do not allow this"
+];
+
+function containsBlockedString(text){
+  const t = text.toLowerCase();
+  return BLOCKED_STRINGS.some(b => t.includes(b.toLowerCase()));
+}
+
+  
 
 /* =========================
    LOGIN / SIGNUP
@@ -384,6 +399,12 @@ messageInput.addEventListener('keypress',e=>{if(e.key==='Enter') sendBtn.click()
 sendBtn.addEventListener('click',async ()=>{
   if(!currentUser) return;
   const text=messageInput.value.trim(); if(!text) return;
+  // 🚫 BLOCKED STRING CHECK (ADDED
+  if(containsBlockedString(text)){
+  alert("Your message contains a blocked word or phrase.");
+  return;
+}
+
   const mentioned=(text.match(/@([^\s@]+)/g)||[]).map(s=>s.slice(1));
   const userDoc=await db.collection('users').doc(currentUser.uid).get();
   const u=userDoc.exists?userDoc.data():{username:usernameInput.value||'me',pfp:''};
