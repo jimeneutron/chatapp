@@ -174,10 +174,99 @@ h2,h3{margin:0}
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
+<script>  
+/* =========================
+SETTINGS MODAL
+========================= */
+settingsBtn.addEventListener('click',async ()=>{
+if(!currentUser) return;
+const doc=await db.collection('users').doc(currentUser.uid).get();
+const d=doc.exists?doc.data():{};
+settingsUsername.value=d.username||usernameInput.value||'';
+settingsPfpPreview.src=d.pfp||'https://placehold.co/80'; settingsPfpPreview.style.display='block';
+myUidEl.textContent=currentUser.uid; showModal(settingsModal);
+});
+closeSettingsBtn.addEventListener('click',()=>hideModal(settingsModal));
+settingsPfp.addEventListener('change',async e=>{ if(!e.target.files[0]) return; settingsPfpPreview.src=await fileToDataURL(e.target.files[0]);});
+saveSettingsBtn.addEventListener('click',async ()=>{
+if(!currentUser) return;
+const updates={}; if(settingsUsername.value.trim()) updates.username=settingsUsername.value.trim();
+if(settingsPfpPreview.src) updates.pfp=settingsPfpPreview.src;
+await db.collection('users').doc(currentUser.uid).update(updates);
+await loadUsers(); renderShortUserList(); hideModal(settingsModal); alert('Saved!');
+});
+
+/* =========================
+LOGOUT
+========================= */
+document.getElementById('logoutBtn').addEventListener('click',async ()=>{
+await auth.signOut(); location.reload();
+});
+
+/* =========================
+CLOSE MODALS ON BG CLICK
+========================= */
+[ newChatModal, settingsModal ].forEach(mod=>{ mod.addEventListener('click', e=>{ if(e.target===mod) hideModal(mod); }); });
+
+/* =========================
+AUTH STATE
+========================= */
+auth.onAuthStateChanged(async user=>{
+currentUser = user;
+
+if(user){
+// Force reload to get latest verification status
+await user.reload();
+currentUser = auth.currentUser;
+
+if(currentUser && currentUser.emailVerified){
+// User is verified, proceed to chat
+verificationStatus.style.display = 'none';
+statusEl.textContent = '';
+
+// Ensure user document exists and has emailVerified flag
+const userDoc = await db.collection('users').doc(currentUser.uid).get();
+if(!userDoc.exists){
+await db.collection('users').doc(currentUser.uid).set({
+username: currentUser.email.split('@')[0] || 'User',
+displayUsername: normalizeUsername(currentUser.email.split('@')[0] || 'User'),
+password: '',
+pfp: '',
+email: currentUser.email,
+emailVerified: true,
+createdAt: firebase.firestore.FieldValue.serverTimestamp()
+});
+}else if(!userDoc.data().emailVerified){
+// Update existing user record
+await db.collection('users').doc(currentUser.uid).update({
+emailVerified: true
+});
+}
+
+initChat();
+}else{
+// Email not verified
+updateVerificationUI(currentUser);
+loginDiv.style.display = 'block';
+chatDiv.style.display = 'none';
+statusEl.textContent = currentUser ? 'Please verify your email to access the chat.' : '';
+}
+}else{
+// Not authenticated
+updateVerificationUI(null);
+loginDiv.style.display = 'block';
+chatDiv.style.display = 'none';
+verificationStatus.style.display = 'none';
+}
+});
+</script>
+</body>
+</html>
 <script>
 /* =========================
    FIREBASE CONFIG
 ========================= */
+  
 const firebaseConfig = {
   apiKey: "AIzaSyAU1SHuBd24zNgP11D6aOPV3w0YFxz8bso",
   authDomain: "cchhatteerr.firebaseapp.com",
