@@ -457,7 +457,13 @@ function containsBlockedString(text){
   const t = text.toLowerCase();
   return BLOCKED_STRINGS.some(b => t.includes(b.toLowerCase()));
 }
-
+/* =========================
+   EMAIL DOMAIN RESTRICTION
+========================= */
+function validateEmailDomain(email) {
+  const allowedDomain = '@reverestudent.org';
+  return email.toLowerCase().endsWith(allowedDomain);
+}
 /* =========================
    PROFILE PICTURE PREVIEW
 ========================= */
