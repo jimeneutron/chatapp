@@ -240,6 +240,21 @@ h2,h3{margin:0}
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
 <script>  
+
+// Initialize EmailJS when EmailJS library is ready
+if (typeof emailjs !== 'undefined') {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    emailjsInitialized = true;
+} else {
+    // Retry when library loads
+    window.addEventListener('load', () => {
+        if (typeof emailjs !== 'undefined') {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+            emailjsInitialized = true;
+        }
+    });
+}
+  
 /* =========================
    FIREBASE CONFIG
 ========================= */
@@ -260,7 +275,64 @@ const db = firebase.firestore();
    EMAILJS CONFIG
 ========================= */
 const EMAILJS_PUBLIC_KEY = "nuZd1_wjNLq2YXtzr";
-emailjs.init(EMAILJS_PUBLIC_KEY);
+const EMAILJS_SERVICE_ID = "service_kt9gwne";
+const EMAILJS_TEMPLATE_ID = "template_at7o7yf";
+
+let emailjsInitialized = false;
+
+function initEmailJS() {
+    if (typeof emailjs !== 'undefined' && !emailjsInitialized) {
+        try {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+            emailjsInitialized = true;
+            console.log('EmailJS initialized');
+        } catch (error) {
+            console.error('EmailJS init failed:', error);
+        }
+    }
+}
+
+/* =========================
+   SEND VERIFICATION CODE VIA EMAILJS
+========================= */
+async function sendVerificationCode(email, code){
+    // Initialize EmailJS if not already done
+    if (!emailjsInitialized) {
+        initEmailJS();
+    }
+    
+    // Validate inputs
+    if (!email || !email.includes('@')) {
+        console.error('Invalid email address');
+        return { success: false, error: 'Invalid email' };
+    }
+    
+    if (!code || code.length !== 6) {
+        console.error('Invalid verification code');
+        return { success: false, error: 'Invalid code format' };
+    }
+
+    const templateParams = {
+      to_email: email,
+      verification_code: code,
+      from_name: 'ChatterChat',
+      message: `Your verification code is: ${code}`
+    };
+
+    try{
+        console.log(`Sending verification code to ${email}`);
+        const response = await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          templateParams
+        );
+        console.log('Email sent successfully:', response);
+        return { success: true, response };
+    }catch(err){
+        console.error('EmailJS error:', err);
+        return { success: false, error: err.message || 'Email sending failed' };
+    }
+}
 
 /* =========================
    DOM ELEMENTS
