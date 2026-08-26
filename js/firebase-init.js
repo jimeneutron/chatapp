@@ -11,12 +11,13 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.0/firebas
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDlBlQUi98QW71arsKnNyE_pnsIZfF5hg8",
+  authDomain: "gooner-app.firebaseapp.com",
+  projectId: "gooner-app",
+  storageBucket: "gooner-app.firebasestorage.app",
+  messagingSenderId: "315256938995",
+  appId: "1:315256938995:web:edf473c2751fd77d9d7286",
+  measurementId: "G-LTPDGLPVLZ"
 };
 
 export const app = initializeApp(firebaseConfig);
