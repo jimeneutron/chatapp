@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>signal/relay — chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============ AUTH SCREEN ============ -->
+  <section id="auth-screen" class="screen">
+    <div class="auth-card">
+      <div class="brand">
+        <span class="brand-mark">//</span>
+        <span class="brand-name">relay</span>
+      </div>
+      <p class="auth-tagline">a small, fast chat room.</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">log in</button>
+        <button class="auth-tab" data-tab="signup">sign up</button>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <label>email
+          <input type="email" id="login-email" required autocomplete="email" />
+        </label>
+        <label>password
+          <input type="password" id="login-password" required autocomplete="current-password" />
+        </label>
+        <button type="submit" class="btn-primary">log in</button>
+        <p class="auth-error" id="login-error"></p>
+      </form>
+
+      <form id="signup-form" class="auth-form hidden">
+        <label>display name
+          <input type="text" id="signup-name" required maxlength="40" autocomplete="nickname" />
+        </label>
+        <label>email
+          <input type="email" id="signup-email" required autocomplete="email" />
+        </label>
+        <label>password
+          <input type="password" id="signup-password" required minlength="6" autocomplete="new-password" />
+        </label>
+        <button type="submit" class="btn-primary">create account</button>
+        <p class="auth-error" id="signup-error"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ APP SCREEN ============ -->
+  <section id="app-screen" class="screen hidden">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand small">
+          <span class="brand-mark">//</span>
+          <span class="brand-name">relay</span>
+        </div>
+        <button id="new-chat-btn" class="icon-btn" title="New chat" aria-label="New chat">+</button>
+      </div>
+
+      <div id="chat-list" class="chat-list"></div>
+
+      <div class="sidebar-bottom" id="own-profile-row">
+        <img id="own-avatar" class="avatar avatar-sm" src="" alt="" />
+        <div class="own-meta">
+          <span id="own-name" class="own-name"></span>
+          <span class="own-sub">edit profile</span>
+        </div>
+        <button id="logout-btn" class="icon-btn ghost" title="Log out" aria-label="Log out">⏻</button>
+      </div>
+    </aside>
+
+    <main class="chat-main">
+      <header class="chat-header">
+        <button type="button" id="back-btn" class="icon-btn ghost back-btn" aria-label="Back to chat list">←</button>
+        <div class="chat-header-title">
+          <span class="chat-hash" id="chat-hash">#</span>
+          <span id="chat-title">select a chat</span>
+        </div>
+        <span id="chat-submeta" class="chat-submeta"></span>
+      </header>
+
+      <div id="message-log" class="message-log">
+        <div class="empty-state" id="empty-state">
+          <p>no chat open yet.</p>
+          <p class="muted">pick one on the left, or start something new.</p>
+        </div>
+      </div>
+
+      <form id="composer" class="composer hidden">
+        <input type="file" id="attachment-input" hidden />
+        <button type="button" id="attach-btn" class="icon-btn ghost" title="Attach file" aria-label="Attach file">📎</button>
+        <span id="attachment-preview" class="attachment-preview hidden"></span>
+        <input type="text" id="message-input" placeholder="write a message…" autocomplete="off" />
+        <button type="submit" class="btn-primary btn-send">send</button>
+      </form>
+    </main>
+  </section>
+
+  <!-- ============ NEW CHAT MODAL ============ -->
+  <div id="new-chat-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <span>start something new</span>
+        <button class="icon-btn ghost" id="close-new-chat">✕</button>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-newchat-tab="private">private</button>
+        <button class="auth-tab" data-newchat-tab="group">group</button>
+      </div>
+
+      <form id="private-chat-form" class="auth-form">
+        <label>their email
+          <input type="email" id="private-email" required />
+        </label>
+        <button type="submit" class="btn-primary">start chat</button>
+        <p class="auth-error" id="private-chat-error"></p>
+      </form>
+
+      <form id="group-chat-form" class="auth-form hidden">
+        <label>group name
+          <input type="text" id="group-name" required maxlength="40" />
+        </label>
+        <label>member emails <span class="hint">(comma-separated)</span>
+          <input type="text" id="group-emails" placeholder="a@x.com, b@x.com" required />
+        </label>
+        <button type="submit" class="btn-primary">create group</button>
+        <p class="auth-error" id="group-chat-error"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ EDIT PROFILE MODAL ============ -->
+  <div id="profile-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <span>edit profile</span>
+        <button class="icon-btn ghost" id="close-profile-modal">✕</button>
+      </div>
+      <div class="profile-edit-row">
+        <img id="profile-modal-avatar" class="avatar avatar-lg" src="" alt="" />
+        <label class="btn-secondary file-btn">
+          change photo
+          <input type="file" id="avatar-input" accept="image/*" hidden />
+        </label>
+      </div>
+      <form id="name-form" class="auth-form">
+        <label>display name
+          <input type="text" id="name-input" maxlength="40" required />
+        </label>
+        <button type="submit" class="btn-primary">save</button>
+      </form>
+      <p class="auth-error" id="profile-error"></p>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
